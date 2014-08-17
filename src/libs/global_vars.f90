@@ -17,6 +17,7 @@ MODULE global_vars
     INTEGER(Long), PUBLIC :: NCeldas
 
     INTEGER(Long), PUBLIC :: STEP
+    INTEGER(Long), PUBLIC :: Nstep=5000
     REAL(Double), PUBLIC :: dt = 2.0_dp * 1.0e-12
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dx
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dy

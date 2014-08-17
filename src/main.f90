@@ -26,12 +26,13 @@ PROGRAM acousticwaves
             IMPLICIT NONE
         END SUBROUTINE load_PML
 
-        SUBROUTINE set_up_sim(material, NCeldas, Nx, Ny, Nz)
+        SUBROUTINE set_up_sim(material, NCeldas, Nstep, Nx, Ny, Nz)
             USE Type_Kinds
             USE Constants_Module
             IMPLICIT NONE
             CHARACTER(LEN = name_len) :: material
             INTEGER(Long) :: NCeldas
+            INTEGER(Long) :: Nstep
             INTEGER(Long) :: Nx
             INTEGER(Long) :: Ny
             INTEGER(Long) :: Nz
@@ -53,7 +54,16 @@ PROGRAM acousticwaves
             CHARACTER(LEN = name_len), INTENT(IN) :: outfile
         END SUBROUTINE
 
-        SUBROUTINE write_point_data(outfile, data_name)
+        SUBROUTINE write_volume_v(outfile, data_name)
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE
+            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
+            CHARACTER(LEN = name_len), INTENT(IN) :: data_name
+        END SUBROUTINE
+
+        SUBROUTINE write_volume_w1(outfile, data_name)
             USE Type_Kinds
             USE Constants_Module
             USE Global_Vars
@@ -74,14 +84,17 @@ PROGRAM acousticwaves
 
     INTEGER :: axis, index, ix, iy, iz, cont
 
-    REAL(Double), DIMENSION(1:3,1:Nstep, 1:Nprobe) :: probe = 0.0_dp
+    REAL(Double), DIMENSION(:,:,:), POINTER :: probe
+    !REAL(Double), DIMENSION(1:3,1:Nstep, 1:Nprobe) :: probe = 0.0_dp
+    ALLOCATE(probe(1:3,1:Nstep, 1:Nprobe))
+    probe=0.0_dp
 
-    CALL set_up_sim(material, NCeldas, Nx, Ny, Nz)
+    CALL set_up_sim(material, NCeldas, Nstep, Nx, Ny, Nz)
     CALL allocate_memory() !Mechanical variables
     CALL load_material(material, rho_inv, c_E, beta_s, e_piezo)
     CALL load_PML() !w1, w2
     CALL open_vtk_file(outfile)
-    CALL write_point_data(outfile, data_name)
+    CALL write_volume_w1(outfile, data_name)
 
 
     WRITE(*, *) w1(UROLL3(2, 2, 3), z)
@@ -96,7 +109,7 @@ PROGRAM acousticwaves
             1000 format('onda', i3.3, '_'i3.3, '.vtk')
             WRITE(outfile, 1000) 1, step/100
             CALL open_vtk_file(outfile)
-            CALL write_point_data(outfile, data_name)
+            CALL write_volume_v(outfile, data_name)
         END IF
         cont = 1
         DO ix = Nx/2-16, Nx/2+16, 4

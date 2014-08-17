@@ -5,13 +5,14 @@
 ! Created on April 12, 2014, 9:35 PM
 !
 
-SUBROUTINE set_up_sim(material, NCeldas,Nx,Ny,Nz)
+SUBROUTINE set_up_sim(material, NCeldas,Nstep,Nx,Ny,Nz)
     USE Type_Kinds
     USE Constants_Module
     IMPLICIT NONE
     
     CHARACTER(LEN=name_len) :: material
     INTEGER(Long) :: NCeldas
+    INTEGER(Long) :: Nstep
     INTEGER(Long) :: Nx
     INTEGER(Long) :: Ny
     INTEGER(Long) :: Nz
@@ -24,6 +25,10 @@ SUBROUTINE set_up_sim(material, NCeldas,Nx,Ny,Nz)
 
     DO WHILE (param /= 'Material:')
         READ(12, *) param, material
+    END DO
+    
+    DO WHILE (param /= 'Nstep:')
+        READ(12, *) param, Nstep
     END DO
     
     DO WHILE (param /= 'Nx:')

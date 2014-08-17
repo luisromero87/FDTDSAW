@@ -22,7 +22,7 @@ SUBROUTINE open_vtk_file(outfile)
     OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="replace")
     
     WRITE(12,2000) "# vtk DataFile Version 2.0"
-    WRITE(12,2000) "Volume example"
+    WRITE(12,2000) "Volume data"
     WRITE(12,2000) "ASCII"
     WRITE(12,2000) "DATASET RECTILINEAR_GRID"
     WRITE(12,3000) Nx,Ny-2,Nz-1
@@ -44,7 +44,7 @@ SUBROUTINE open_vtk_file(outfile)
     
 END SUBROUTINE open_vtk_file
 
-SUBROUTINE write_point_data (outfile, data_name)
+SUBROUTINE write_volume_v (outfile, data_name)
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
@@ -75,4 +75,37 @@ SUBROUTINE write_point_data (outfile, data_name)
     
     CLOSE(12)
     
-END SUBROUTINE write_point_data
+END SUBROUTINE write_volume_v
+
+SUBROUTINE write_volume_w1 (outfile, data_name)
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+    IMPLICIT NONE
+    
+    CHARACTER(LEN=name_len), INTENT(IN) :: data_name
+    CHARACTER(LEN=name_len), INTENT(IN) :: outfile
+    
+    INTEGER(Long) UROLL3
+    
+    INTEGER :: ix,iy,iz,axis
+    
+    5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
+    
+    OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="old", position="append")
+    
+    WRITE(12,*) "POINT_DATA", Nx*(Ny-2)*(Nz-1)
+    WRITE(12,*) "SCALARS "//data_name//" double 3"
+    WRITE(12,*) "LOOKUP_TABLE default"
+    DO iz = 1, Nz-1
+      DO iy = 1, Ny-2
+	DO ix = 0, Nx-1
+	    write(12,5000) REAL(w1(UROLL3(ix,iy,iz),x),Single),REAL(w1(UROLL3(ix,iy,iz),y),Single),REAL(w1(UROLL3(ix,iy,iz),z),Single)
+	END DO
+      END DO 
+    END DO
+    write(*,*)'file closed'
+    
+    CLOSE(12)
+    
+END SUBROUTINE write_volume_w1

@@ -22,7 +22,7 @@ MODULE constants_module
     INTEGER, PARAMETER, PUBLIC :: y = 2
     INTEGER, PARAMETER, PUBLIC :: z = 3
     
-    INTEGER, PARAMETER, PUBLIC :: Nstep=5000
+    !INTEGER, PARAMETER, PUBLIC :: Nstep=5000
     INTEGER, PARAMETER, PUBLIC :: Nprobe = 9*9*9
     
     CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: PLM_archive='configfiles/PLM'
