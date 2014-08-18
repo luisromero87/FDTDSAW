@@ -19,7 +19,7 @@ SUBROUTINE open_vtk_file(outfile)
     3000 format('DIMENSIONS ',i4,i4,i4)
     4000 format(1p,e12.6)
     
-    OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="replace")
+    OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="replace")
     
     WRITE(12,2000) "# vtk DataFile Version 2.0"
     WRITE(12,2000) "Volume data"
@@ -59,7 +59,7 @@ SUBROUTINE write_volume_v (outfile, data_name)
     
     5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
     
-    OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="old", position="append")
+    OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="old", position="append")
     
     WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
@@ -92,7 +92,7 @@ SUBROUTINE write_volume_w1 (outfile, data_name)
     
     5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
     
-    OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="old", position="append")
+    OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="old", position="append")
     
     WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
