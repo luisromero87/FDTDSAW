@@ -175,7 +175,7 @@ PROGRAM acousticwaves
     DO step = 1, Nstep
         CALL v_half_step()
         CALL free_boundary_v()
-        IF (me==1) THEN
+        IF (me==0) THEN
 	        CALL dot_source()
         END IF
         CALL share_v()
