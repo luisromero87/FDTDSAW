@@ -9,13 +9,9 @@ RANLIB=ranlib
 CC=cc
 CCC=CC
 CXX=CC
-FC=f95
+FC=mpif90
+FFLAGS= -O3 -fbackslash
 AS=as
-
-#Compiler
-FC=gfortran
-#Flags
-FFLAGS= -O3
 
 # Macros
 CND_PLATFORM=Linux-x86
@@ -41,7 +37,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/type_kinds.o \
 	${OBJECTDIR}/libs/constants_module.o \
 	${OBJECTDIR}/libs/global_vars.o \
-	${OBJECTDIR}/libs/set_up_sim.o \
+	${OBJECTDIR}/libs/read_input_param.o \
 	${OBJECTDIR}/libs/uroll3.o \
 	${OBJECTDIR}/libs/allocate_memory.o \
 	${OBJECTDIR}/libs/load_material.o \
@@ -88,13 +84,14 @@ ${OBJECTDIR}/libs/global_vars.o: ${SRCLIBSDIR}/global_vars.f90
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/global_vars.o ${SRCLIBSDIR}/global_vars.f90
 
-.PHONY: set_up_sim
-set_up_sim: ${OBJECTDIR}/libs/set_up_sim.o \
+.PHONY: read_input_param
+read_input_param: ${OBJECTDIR}/libs/read_input_param.o \
                   type_kinds \
-                  constants_module
-${OBJECTDIR}/libs/set_up_sim.o: ${SRCLIBSDIR}/set_up_sim.f90 
+                  constants_module \
+                  global_vars
+${OBJECTDIR}/libs/read_input_param.o: ${SRCLIBSDIR}/read_input_param.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
-	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/set_up_sim.o ${SRCLIBSDIR}/set_up_sim.f90
+	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/read_input_param.o ${SRCLIBSDIR}/read_input_param.f90
 
 .PHONY: uroll3
 uroll3: ${OBJECTDIR}/libs/uroll3.o \
@@ -155,3 +152,4 @@ ${OBJECTDIR}/libs/time_step.o: ${SRCLIBSDIR}/time_step.f90
 clean:
 	${RM} -rf ${OBJECTDIR}
 	${RM} -f *.mod
+	${RM} -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/*.vtk

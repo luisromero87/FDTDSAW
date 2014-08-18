@@ -10,17 +10,20 @@ SUBROUTINE load_PML()
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
+    
+    CHARACTER(LEN=name_len) :: which
 
     INTEGER(Long) UROLL3
 
     INTEGER :: st
 
     INTEGER :: ix, iy, iz, axis
-
-    OPEN(UNIT = 11, FILE = PLM_archive, FORM = 'unformatted', IOSTAT = st)
+    
+    WRITE(which, '(A,I3.3)') 'configfiles/PLM', me
+    OPEN(UNIT = 11, FILE = which, FORM = 'unformatted', IOSTAT = st)
 
     DO axis = 1, 3
-        write(*, *) axis
+        !write(*, *) axis
         DO ix = 0, Nx - 1
             READ(11) ((w1(UROLL3(ix, iy, iz), axis), iy = 0, Ny - 1), iz = 0, Nz - 1)
         END DO

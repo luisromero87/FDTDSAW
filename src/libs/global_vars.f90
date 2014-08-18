@@ -7,18 +7,35 @@
 
 MODULE global_vars
 
+    USE MPI
     USE Type_Kinds
     USE Constants_Module
     IMPLICIT NONE
+    
+    
+!~     REAL(Double), DIMENSION(:), POINTER :: mpibufferx, mpibuffery
+    INTEGER, DIMENSION(MPI_STATUS_SIZE), PUBLIC :: mpistatus
+    INTEGER, PUBLIC :: ierr, ntasks, me, req1, req2
+    
+    CHARACTER(LEN = name_len), PUBLIC :: material = 'bi12geo20' !Default
 
     INTEGER(Long), PUBLIC :: Nx
     INTEGER(Long), PUBLIC :: Ny
     INTEGER(Long), PUBLIC :: Nz
     INTEGER(Long), PUBLIC :: NCeldas
+    INTEGER(Short), PUBLIC :: Nprocsx=1
+    INTEGER(Short), PUBLIC :: Nprocsy=1
+    INTEGER(Short), PUBLIC :: procsx=1
+    INTEGER(Short), PUBLIC :: procsy=1
 
     INTEGER(Long), PUBLIC :: STEP
     INTEGER(Long), PUBLIC :: Nstep=5000
     REAL(Double), PUBLIC :: dt = 2.0_dp * 1.0e-12
+    REAL(Double), PUBLIC :: deltax
+    REAL(Double), PUBLIC :: deltay
+    REAL(Double), PUBLIC :: deltaz
+    REAL(Double), PUBLIC :: offsetx
+    REAL(Double), PUBLIC :: offsety
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dx
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dy
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dz

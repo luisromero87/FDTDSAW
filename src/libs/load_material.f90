@@ -5,14 +5,11 @@
 ! Created on April 12, 2014, 9:35 PM
 !
 
-SUBROUTINE load_material (material)
+SUBROUTINE load_material ()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
-    
-    CHARACTER(LEN=name_len) :: material
-    
     
     INTEGER :: st
             

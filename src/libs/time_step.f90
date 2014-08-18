@@ -11,7 +11,7 @@ SUBROUTINE v_half_step()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) UROLL3
+    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -67,7 +67,7 @@ SUBROUTINE free_boundary_v()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) UROLL3
+    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -90,7 +90,7 @@ SUBROUTINE T_half_step()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) UROLL3
+    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -166,7 +166,7 @@ SUBROUTINE free_boundary_T()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) UROLL3
+    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -189,7 +189,7 @@ SUBROUTINE dot_source()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) UROLL3
+    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -203,3 +203,463 @@ SUBROUTINE dot_source()
     !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
 
 END SUBROUTINE dot_source
+
+
+
+
+SUBROUTINE share_v()
+	USE mpi
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+	IMPLICIT NONE
+	INTEGER(Long) :: UROLL3
+	INTEGER(Short) UROLLPROC
+	INTEGER :: ix, iy, iz, nextprocid
+	REAL(Double), DIMENSION (0:3*Nz*Ny-1) :: mpibufferx
+	
+	IF (ntasks>1 .AND. me<Nprocsx*Nprocsy) THEN
+		!direccion x
+		!interfaces pares
+        IF ( MOD(procsx,2)==0 .AND. (procsx<Nprocsx-1) ) THEN
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= Vx(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= Vy(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= Vz(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx+1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+			CALL MPI_RECV(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vx(UROLL3(Nx-1,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vy(UROLL3(Nx-1,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vz(UROLL3(Nx-1,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+
+		ELSE IF ( MOD(procsx,2)==1 ) THEN
+		
+			CALL MPI_RECV(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vx(UROLL3(0_li,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vy(UROLL3(0_li,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vz(UROLL3(0_li,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= Vx(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= Vy(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= Vz(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+		END IF
+		!interfaces impares
+        IF ( MOD(procsx,2)==1 .AND. (procsx<Nprocsx-1) ) THEN
+			
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= Vx(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= Vy(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= Vz(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx+1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+			CALL MPI_RECV(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vx(UROLL3(Nx-1,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vy(UROLL3(Nx-1,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vz(UROLL3(Nx-1,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+
+		ELSE IF ( MOD(procsx,2)==0 .AND. (procsx >0) ) THEN
+		
+			CALL MPI_RECV(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vx(UROLL3(0_li,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vy(UROLL3(0_li,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				Vz(UROLL3(0_li,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= Vx(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= Vy(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= Vz(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+		END IF
+	END IF
+
+END SUBROUTINE share_v
+
+
+SUBROUTINE share_T()
+	USE mpi
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+	IMPLICIT NONE
+	INTEGER(Long) :: UROLL3
+	INTEGER(Short) UROLLPROC
+	INTEGER :: ix, iy, iz, nextprocid
+	REAL(Double), DIMENSION (0:6*Nz*Ny-1) :: mpibufferx
+	
+	IF (ntasks>1 .AND. me<Nprocsx*Nprocsy) THEN
+		!direccion x
+		!interfaces pares
+        IF ( MOD(procsx,2)==0 .AND. (procsx<Nprocsx-1) ) THEN
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= T1(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= T2(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= T3(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(3*Nz*Ny+iz*Ny+iy)= T4(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(4*Nz*Ny+iz*Ny+iy)= T5(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(5*Nz*Ny+iz*Ny+iy)= T6(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx+1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+			CALL MPI_RECV(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T1(UROLL3(Nx-1,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T2(UROLL3(Nx-1,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T3(UROLL3(Nx-1,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T4(UROLL3(Nx-1,iy,iz))=mpibufferx(3*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T5(UROLL3(Nx-1,iy,iz))=mpibufferx(4*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T6(UROLL3(Nx-1,iy,iz))=mpibufferx(5*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+
+		ELSE IF ( MOD(procsx,2)==1 ) THEN
+		
+			CALL MPI_RECV(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T1(UROLL3(0_li,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T2(UROLL3(0_li,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T3(UROLL3(0_li,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T4(UROLL3(0_li,iy,iz))=mpibufferx(3*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T5(UROLL3(0_li,iy,iz))=mpibufferx(4*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T6(UROLL3(0_li,iy,iz))=mpibufferx(5*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= T1(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= T2(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= T3(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(3*Nz*Ny+iz*Ny+iy)= T4(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(4*Nz*Ny+iz*Ny+iy)= T5(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(5*Nz*Ny+iz*Ny+iy)= T6(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+		END IF
+		!interfaces impares
+        IF ( MOD(procsx,2)==1 .AND. (procsx<Nprocsx-1) ) THEN
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= T1(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= T2(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= T3(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(3*Nz*Ny+iz*Ny+iy)= T4(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(4*Nz*Ny+iz*Ny+iy)= T5(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(5*Nz*Ny+iz*Ny+iy)= T6(UROLL3(Nx-2,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx+1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+			CALL MPI_RECV(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T1(UROLL3(Nx-1,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T2(UROLL3(Nx-1,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T3(UROLL3(Nx-1,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T4(UROLL3(Nx-1,iy,iz))=mpibufferx(3*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T5(UROLL3(Nx-1,iy,iz))=mpibufferx(4*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T6(UROLL3(Nx-1,iy,iz))=mpibufferx(5*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+
+		ELSE IF ( MOD(procsx,2)==0 .AND. (procsx >0) ) THEN
+		
+			CALL MPI_RECV(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T1(UROLL3(0_li,iy,iz))=mpibufferx(0*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T2(UROLL3(0_li,iy,iz))=mpibufferx(1*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T3(UROLL3(0_li,iy,iz))=mpibufferx(2*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T4(UROLL3(0_li,iy,iz))=mpibufferx(3*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T5(UROLL3(0_li,iy,iz))=mpibufferx(4*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+				T6(UROLL3(0_li,iy,iz))=mpibufferx(5*Nz*Ny+iz*Ny+iy)
+			END DO
+			END DO
+			
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(0*Nz*Ny+iz*Ny+iy)= T1(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(1*Nz*Ny+iz*Ny+iy)= T2(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(2*Nz*Ny+iz*Ny+iy)= T3(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(3*Nz*Ny+iz*Ny+iy)= T4(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(4*Nz*Ny+iz*Ny+iy)= T5(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			DO iz=0, Nz-1
+			DO iy=0, Ny-1
+					mpibufferx(5*Nz*Ny+iz*Ny+iy)= T6(UROLL3(1_li,iy,iz))
+			END DO
+			END DO
+			CALL MPI_SEND(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
+			
+		END IF
+	END IF
+
+END SUBROUTINE share_T
+
+
+
+
+
+
+
+
+

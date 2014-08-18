@@ -17,7 +17,7 @@ SUBROUTINE open_vtk_file(outfile)
     
     2000 format(a)
     3000 format('DIMENSIONS ',i4,i4,i4)
-    4000 format(1p,i4)
+    4000 format(1p,e12.6)
     
     OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="replace")
     
@@ -25,19 +25,19 @@ SUBROUTINE open_vtk_file(outfile)
     WRITE(12,2000) "Volume data"
     WRITE(12,2000) "ASCII"
     WRITE(12,2000) "DATASET RECTILINEAR_GRID"
-    WRITE(12,3000) Nx,Ny-2,Nz-1
+    WRITE(12,3000) Nx-2,Ny-2,Nz-1
     
-    WRITE(12,*) "X_COORDINATES", Nx, "double"
-    DO ix = 0, Nx-1
-      WRITE(12,4000) ix
+    WRITE(12,*) "X_COORDINATES", Nx-2, "double"
+    DO ix = 0, Nx-3
+      WRITE(12,4000) ix*deltax+offsetx
     END DO
     WRITE(12,*) "Y_COORDINATES", Ny-2, "double"
-    DO iy = 1, Ny-2
-      WRITE(12,4000) iy
+    DO iy = 0, Ny-3
+      WRITE(12,4000) iy*deltay+offsety
     END DO
     WRITE(12,*) "Z_COORDINATES", Nz-1, "double"
     DO iz = 1, Nz-1
-      WRITE(12,4000) iz
+      WRITE(12,4000) iz*deltaz
     END DO
     
     CLOSE(12)
@@ -61,17 +61,17 @@ SUBROUTINE write_volume_v (outfile, data_name)
     
     OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="old", position="append")
     
-    WRITE(12,*) "POINT_DATA", Nx*(Ny-2)*(Nz-1)
+    WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
     WRITE(12,*) "LOOKUP_TABLE default"
     DO iz = 1, Nz-1
       DO iy = 1, Ny-2
-	DO ix = 0, Nx-1
+	DO ix = 1, Nx-2
 	    write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
 	END DO
       END DO 
     END DO
-    write(*,*)'file closed'
+!~     write(*,*)'file closed'
     
     CLOSE(12)
     
@@ -94,17 +94,17 @@ SUBROUTINE write_volume_w1 (outfile, data_name)
     
     OPEN(UNIT=12, FILE=outfile, ACTION="write", STATUS="old", position="append")
     
-    WRITE(12,*) "POINT_DATA", Nx*(Ny-2)*(Nz-1)
+    WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
     WRITE(12,*) "LOOKUP_TABLE default"
     DO iz = 1, Nz-1
       DO iy = 1, Ny-2
-	DO ix = 0, Nx-1
+	DO ix = 1, Nx-2
 	    write(12,5000) REAL(w1(UROLL3(ix,iy,iz),x),Single),REAL(w1(UROLL3(ix,iy,iz),y),Single),REAL(w1(UROLL3(ix,iy,iz),z),Single)
 	END DO
       END DO 
     END DO
-    write(*,*)'file closed'
+!~     write(*,*)'file closed'
     
     CLOSE(12)
     

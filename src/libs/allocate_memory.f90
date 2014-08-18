@@ -73,9 +73,9 @@ SUBROUTINE allocate_memory()
     w1 = 1.0_dp
     w2 = 0.0_dp
     
-    dx = 9.3333333_dp*1e-8
-    dy = 9.3333333_dp*1e-8
-    dz = 9.3333333_dp*1e-8
+    dx = deltax
+    dy = deltay
+    dz = deltaz
     
     Vx = 0.0_dp
     Vx_x = 0.0_dp
@@ -122,3 +122,66 @@ SUBROUTINE allocate_memory()
 
 END SUBROUTINE allocate_memory
 
+SUBROUTINE deallocate_memory()
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+    IMPLICIT NONE
+    
+!~     ALLOCATE(mpibufferx(0:3*Ny*Nz-1))
+!~     ALLOCATE(mpibuffery(0:Nx*Nz-1))
+    
+    DEALLOCATE(c_E)
+    DEALLOCATE(beta_s)
+    DEALLOCATE(e_piezo)
+    
+    DEALLOCATE(dx)
+    DEALLOCATE(dy)
+    DEALLOCATE(dz)
+
+    DEALLOCATE(Vx)
+    DEALLOCATE(Vx_x)
+    DEALLOCATE(Vx_y)
+    DEALLOCATE(Vx_z)
+
+    DEALLOCATE(Vy)
+    DEALLOCATE(Vy_x)
+    DEALLOCATE(Vy_y)
+    DEALLOCATE(Vy_z)
+
+    DEALLOCATE(Vz)
+    DEALLOCATE(Vz_x)
+    DEALLOCATE(Vz_y)
+    DEALLOCATE(Vz_z)
+
+    DEALLOCATE(T1)
+    DEALLOCATE(T1_x)
+    DEALLOCATE(T1_y)
+    DEALLOCATE(T1_z)
+
+    DEALLOCATE(T2)
+    DEALLOCATE(T2_x)
+    DEALLOCATE(T2_y)
+    DEALLOCATE(T2_z)
+
+    DEALLOCATE(T3)
+    DEALLOCATE(T3_x)
+    DEALLOCATE(T3_y)
+    DEALLOCATE(T3_z)
+
+    DEALLOCATE(T4)
+    DEALLOCATE(T4_y)
+    DEALLOCATE(T4_z)
+
+    DEALLOCATE(T5)
+    DEALLOCATE(T5_x)
+    DEALLOCATE(T5_z)
+
+    DEALLOCATE(T6)
+    DEALLOCATE(T6_x)
+    DEALLOCATE(T6_y)
+
+    DEALLOCATE(w1)
+    DEALLOCATE(w2)
+
+END SUBROUTINE deallocate_memory
