@@ -1,0 +1,5 @@
+dist/Release/Linux-x86/outputdata/*.vtk
+*.vtk
+*.o
+*.mod
+*.*~
