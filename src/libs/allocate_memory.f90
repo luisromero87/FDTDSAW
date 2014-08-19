@@ -15,9 +15,6 @@ SUBROUTINE allocate_memory()
     ALLOCATE(beta_s(1:9))
     ALLOCATE(e_piezo(1:18))
     
-    ALLOCATE(w1(0:NCeldas - 1, 1:3))
-    ALLOCATE(w2(0:NCeldas - 1, 1:3))
-    
     ALLOCATE(dx(0:Nx - 1))
     ALLOCATE(dy(0:Ny - 1))
     ALLOCATE(dz(0:Nz - 1))
@@ -63,6 +60,21 @@ SUBROUTINE allocate_memory()
     ALLOCATE(T6(0:NCeldas - 1))
     ALLOCATE(T6_x(0:NCeldas - 1))
     ALLOCATE(T6_y(0:NCeldas - 1))
+
+    ALLOCATE(dEx(0:NCeldas - 1))
+    ALLOCATE(dEy(0:NCeldas - 1))
+    ALLOCATE(dEz(0:NCeldas - 1))
+
+    ALLOCATE(dDx(0:NCeldas - 1))
+    ALLOCATE(dDy(0:NCeldas - 1))
+    ALLOCATE(dDz(0:NCeldas - 1))
+
+    ALLOCATE(D0x(0:NCeldas - 1))
+    ALLOCATE(D0y(0:NCeldas - 1))
+    ALLOCATE(D0z(0:NCeldas - 1))
+    
+    ALLOCATE(w1(0:NCeldas - 1, 1:3))
+    ALLOCATE(w2(0:NCeldas - 1, 1:3))
 
 
     
@@ -118,6 +130,18 @@ SUBROUTINE allocate_memory()
     T6 = 0.0_dp
     T6_x = 0.0_dp
     T6_y = 0.0_dp
+
+    dEx = 0.0_dp
+    dEy = 0.0_dp
+    dEz = 0.0_dp
+
+    dDx = 0.0_dp
+    dDy = 0.0_dp
+    dDz = 0.0_dp
+
+    D0x = 0.0_dp
+    D0y = 0.0_dp
+    D0z = 0.0_dp
 
 
 END SUBROUTINE allocate_memory
@@ -180,6 +204,18 @@ SUBROUTINE deallocate_memory()
     DEALLOCATE(T6)
     DEALLOCATE(T6_x)
     DEALLOCATE(T6_y)
+
+    DEALLOCATE(dEx)
+    DEALLOCATE(dEy)
+    DEALLOCATE(dEz)
+
+    DEALLOCATE(dDx)
+    DEALLOCATE(dDy)
+    DEALLOCATE(dDz)
+
+    DEALLOCATE(D0x)
+    DEALLOCATE(D0y)
+    DEALLOCATE(D0z)
 
     DEALLOCATE(w1)
     DEALLOCATE(w2)

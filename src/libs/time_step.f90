@@ -97,8 +97,16 @@ SUBROUTINE T_half_step()
     REAL(Double) :: dVxdx = 0.0_dp
     REAL(Double) :: dVydy = 0.0_dp
     REAL(Double) :: dVzdz = 0.0_dp
-
-
+    
+    REAL(Double) :: dVzdy = 0.0_dp
+    REAL(Double) :: dVydz = 0.0_dp
+    
+    REAL(Double) :: dVzdx = 0.0_dp
+    REAL(Double) :: dVxdz = 0.0_dp
+    
+    REAL(Double) :: dVydx = 0.0_dp
+    REAL(Double) :: dVxdy = 0.0_dp
+    
 
     DO iz = 1, Nz - 2
         DO iy = 1, Ny - 2
@@ -107,6 +115,15 @@ SUBROUTINE T_half_step()
                 dVxdx = Vx(UROLL3(ix, iy, iz)) - Vx(UROLL3(ix - 1, iy, iz))
                 dVydy = Vy(UROLL3(ix, iy, iz)) - Vy(UROLL3(ix, iy - 1, iz))
                 dVzdz = Vz(UROLL3(ix, iy, iz)) - Vz(UROLL3(ix, iy, iz - 1))
+                
+                dVzdy = (Vz(UROLL3(ix, iy + 1, iz)) - Vz(UROLL3(ix, iy, iz)))
+                dVydz = (Vy(UROLL3(ix, iy, iz + 1)) - Vy(UROLL3(ix, iy, iz)))
+                
+                dVzdx = (Vz(UROLL3(ix + 1, iy, iz)) - Vz(UROLL3(ix, iy, iz)))
+                dVxdz = (Vx(UROLL3(ix, iy, iz + 1)) - Vx(UROLL3(ix, iy, iz)))
+                
+                dVydx = (Vy(UROLL3(ix + 1, iy, iz)) - Vy(UROLL3(ix, iy, iz)))
+                dVxdy = (Vx(UROLL3(ix, iy + 1, iz)) - Vx(UROLL3(ix, iy, iz)))
 
                 T1_x(UROLL3(ix, iy, iz)) = T1_x(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), x) +&
                 w2(UROLL3(ix, iy, iz), x) * c_E(1)*(dVxdx)
@@ -132,24 +149,35 @@ SUBROUTINE T_half_step()
                 T3_z(UROLL3(ix, iy, iz)) = T3_z(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), z) +&
                 w2(UROLL3(ix, iy, iz), z) * c_E(12 + 3)*(dVzdz)
                 T3(UROLL3(ix, iy, iz)) = T3_x(UROLL3(ix, iy, iz)) + T3_y(UROLL3(ix, iy, iz)) + T3_z(UROLL3(ix, iy, iz))
+                
+                dDx(UROLL3(ix, iy, iz))=D0x(UROLL3(ix, iy, iz))*phase
+                dDy(UROLL3(ix, iy, iz))=D0y(UROLL3(ix, iy, iz))*phase
+                dDz(UROLL3(ix, iy, iz))=D0z(UROLL3(ix, iy, iz))*phase
 
+				dEx(UROLL3(ix, iy, iz))=(dDx(UROLL3(ix, iy, iz))-(dVzdy/deltay + dVydz/deltaz)*e_piezo(10))*beta_s(1)
+				dEy(UROLL3(ix, iy, iz))=(dDy(UROLL3(ix, iy, iz))-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(14))*beta_s(5)
+				dEz(UROLL3(ix, iy, iz))=(dDz(UROLL3(ix, iy, iz))-(dVydx/deltax + dVxdy/deltay)*e_piezo(18))*beta_s(9)
+				
                 T4_y(UROLL3(ix, iy, iz)) = T4_y(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), y) +&
-                w2(UROLL3(ix, iy, iz), y) * c_E(18 + 4)*(Vz(UROLL3(ix, iy + 1, iz)) - Vz(UROLL3(ix, iy, iz)))
+                w2(UROLL3(ix, iy, iz), y) * c_E(18 + 4)*dVzdy
                 T4_z(UROLL3(ix, iy, iz)) = T4_z(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), z) +&
-                w2(UROLL3(ix, iy, iz), z) * c_E(18 + 4)*(Vy(UROLL3(ix, iy, iz + 1)) - Vy(UROLL3(ix, iy, iz)))
-                T4(UROLL3(ix, iy, iz)) = T4_y(UROLL3(ix, iy, iz)) + T4_z(UROLL3(ix, iy, iz))
+                w2(UROLL3(ix, iy, iz), z) * c_E(18 + 4)*dVydz
+                T4(UROLL3(ix, iy, iz)) = T4_y(UROLL3(ix, iy, iz)) + T4_z(UROLL3(ix, iy, iz)) + &
+                dEx(UROLL3(ix, iy, iz))*e_piezo(10)*dt
 
                 T5_x(UROLL3(ix, iy, iz)) = T5_x(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), x) +&
-                w2(UROLL3(ix, iy, iz), x) * c_E(24 + 5)*(Vz(UROLL3(ix + 1, iy, iz)) - Vz(UROLL3(ix, iy, iz)))
+                w2(UROLL3(ix, iy, iz), x) * c_E(24 + 5)*dVzdx
                 T5_z(UROLL3(ix, iy, iz)) = T5_z(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), z) +&
-                w2(UROLL3(ix, iy, iz), z) * c_E(24 + 5)*(Vx(UROLL3(ix, iy, iz + 1)) - Vx(UROLL3(ix, iy, iz)))
-                T5(UROLL3(ix, iy, iz)) = T5_x(UROLL3(ix, iy, iz)) + T5_z(UROLL3(ix, iy, iz))
+                w2(UROLL3(ix, iy, iz), z) * c_E(24 + 5)*dVxdz
+                T5(UROLL3(ix, iy, iz)) = T5_x(UROLL3(ix, iy, iz)) + T5_z(UROLL3(ix, iy, iz)) + &
+                dEy(UROLL3(ix, iy, iz))*e_piezo(14)*dt
 
                 T6_x(UROLL3(ix, iy, iz)) = T6_x(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), x) +&
-                w2(UROLL3(ix, iy, iz), x) * c_E(30 + 6)*(Vy(UROLL3(ix + 1, iy, iz)) - Vy(UROLL3(ix, iy, iz)))
+                w2(UROLL3(ix, iy, iz), x) * c_E(30 + 6)*dVydx
                 T6_y(UROLL3(ix, iy, iz)) = T6_y(UROLL3(ix, iy, iz)) * w1(UROLL3(ix, iy, iz), y) +&
-                w2(UROLL3(ix, iy, iz), y) * c_E(30 + 6)*(Vx(UROLL3(ix, iy + 1, iz)) - Vx(UROLL3(ix, iy, iz)))
-                T6(UROLL3(ix, iy, iz)) = T6_x(UROLL3(ix, iy, iz)) + T6_y(UROLL3(ix, iy, iz))
+                w2(UROLL3(ix, iy, iz), y) * c_E(30 + 6)*dVxdy
+                T6(UROLL3(ix, iy, iz)) = T6_x(UROLL3(ix, iy, iz)) + T6_y(UROLL3(ix, iy, iz)) + &
+                dEz(UROLL3(ix, iy, iz))*e_piezo(18)*dt
 
             END DO
         END DO

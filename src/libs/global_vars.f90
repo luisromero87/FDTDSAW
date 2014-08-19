@@ -88,6 +88,21 @@ MODULE global_vars
     REAL(Double), DIMENSION(:), POINTER :: T6
     REAL(Double), DIMENSION(:), POINTER :: T6_x
     REAL(Double), DIMENSION(:), POINTER :: T6_y
+    
+    !Electrical variable
+    REAL(Double), DIMENSION(:), POINTER :: dEx
+    REAL(Double), DIMENSION(:), POINTER :: dEy
+    REAL(Double), DIMENSION(:), POINTER :: dEz
+
+    REAL(Double), DIMENSION(:), POINTER :: dDx
+    REAL(Double), DIMENSION(:), POINTER :: dDy
+    REAL(Double), DIMENSION(:), POINTER :: dDz
+
+    REAL(Double), DIMENSION(:), POINTER :: D0x
+    REAL(Double), DIMENSION(:), POINTER :: D0y
+    REAL(Double), DIMENSION(:), POINTER :: D0z
+    
+    REAL(Double) :: phase=0.0_dp
 
     !PML weights
     REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: w1
