@@ -79,6 +79,15 @@ PROGRAM acousticwaves
             CHARACTER(LEN = name_len), INTENT(IN) :: outfile
         END SUBROUTINE
 
+        SUBROUTINE write_free_surface(outfile, data_name)
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE
+            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
+            CHARACTER(LEN = name_len), INTENT(IN) :: data_name
+        END SUBROUTINE
+
         SUBROUTINE write_volume_v(outfile, data_name)
             USE Type_Kinds
             USE Constants_Module
@@ -185,11 +194,11 @@ PROGRAM acousticwaves
         CALL share_T()
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         IF (MOD(STEP, 100) .EQ. 0) THEN
-            1000 format('onda', i3.3, '_'i3.3, '.vtk')
+            1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
             WRITE(outfile, 1000) me, step/100
             data_name = 'v'
-            CALL open_vtk_file(outfile)
-            CALL write_volume_v(outfile, data_name)
+!~             CALL open_vtk_file(outfile)
+            CALL write_free_surface(outfile, data_name)
         END IF
         cont = 1
         DO ix = Nx/2-16, Nx/2+16, 4
