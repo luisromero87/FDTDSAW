@@ -153,4 +153,4 @@ ${OBJECTDIR}/libs/time_step.o: ${SRCLIBSDIR}/time_step.f90
 clean:
 	${RM} -rf ${OBJECTDIR}
 	${RM} -f *.mod
-	${RM} -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata/*.vtk
+	${RM} -rf ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/

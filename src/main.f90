@@ -169,12 +169,12 @@ PROGRAM acousticwaves
     offsety=procsy*(Ny-3)*deltay
     
     !Testing ROLLPROC and UROLLPROC
-    !DO ix=0, ntasks
-    !    IF (me==ix) THEN
-    !        write(*,*) procsx, procsy, UROLLPROC(procsx, procsy)
-    !    END IF
-    !    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    !END DO
+    DO ix=0, ntasks
+        IF (me==ix) THEN
+            write(*,*) procsx, procsy, UROLLPROC(procsx, procsy)
+        END IF
+        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    END DO
     
     CALL load_PML() !w1, w2 ...ok
     WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 
@@ -184,9 +184,7 @@ PROGRAM acousticwaves
     DO step = 1, Nstep
         CALL v_half_step()
         CALL free_boundary_v()
-        IF (me==0) THEN
-	        CALL dot_source()
-        END IF
+        CALL dot_source()
         CALL share_v()
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL T_half_step()

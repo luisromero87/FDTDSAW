@@ -221,15 +221,19 @@ SUBROUTINE dot_source()
 
     INTEGER :: ix, iy, iz
 
-    ix = Nx-2
-    iy = Ny-2
-    iz = 1
-
-    Vz(UROLL3(ix, iy, iz)) = Vz(UROLL3(ix, iy, iz)) + &
-    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-
-    !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-
+	IF (me==3) THEN
+	    ix = (Nx/2-2)*MOD(procsx,2)+Nx/2
+	    iy = (Ny/2-15)*MOD(procsy,2)+Ny/2
+	    iz = 1
+!~ 	write(*,*) me, ix, iy, iz
+		DO ix=1, Nx-2
+	    Vz(UROLL3(ix, iy, iz)) = Vz(UROLL3(ix, iy, iz)) + &
+	    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+	    END DO
+	
+	    !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+	END IF
+	
 END SUBROUTINE dot_source
 
 
@@ -267,6 +271,7 @@ SUBROUTINE share_v()
 			END DO
 			END DO
 			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx+1,procsy)),me,MPI_COMM_WORLD,ierr)
+!~ 			WRITE(*,*) me, int(UROLLPROC(procsx+1,procsy))
 			
 			CALL MPI_RECV(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
 			DO iz=0, Nz-1
@@ -320,6 +325,8 @@ SUBROUTINE share_v()
 			END DO
 			END DO
 			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
+!~ 			WRITE(*,*) me, int(UROLLPROC(procsx-1,procsy))
+			
 			
 		END IF
 		!interfaces impares
@@ -341,6 +348,7 @@ SUBROUTINE share_v()
 			END DO
 			END DO
 			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx+1,procsy)),me,MPI_COMM_WORLD,ierr)
+!~ 			WRITE(*,*) me, int(UROLLPROC(procsx+1,procsy))
 			
 			CALL MPI_RECV(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,mpistatus,ierr)
 			DO iz=0, Nz-1
@@ -394,6 +402,7 @@ SUBROUTINE share_v()
 			END DO
 			END DO
 			CALL MPI_SEND(mpibufferx,3*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
+!~ 			WRITE(*,*) me, int(UROLLPROC(procsx-1,procsy))
 			
 		END IF
 		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)

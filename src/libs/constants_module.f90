@@ -30,7 +30,7 @@ MODULE constants_module
     CHARACTER(LEN=10), PARAMETER, PUBLIC :: Materials_dir='Materials/'
     
     
-    REAL(Double), PARAMETER, PUBLIC :: PWIDTH=0.4e-9	
+    REAL(Double), PARAMETER, PUBLIC :: PWIDTH=0.25e-9	
 
 
 END MODULE constants_module

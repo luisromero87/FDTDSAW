@@ -19,8 +19,8 @@ SUBROUTINE load_material ()
     READ(10) beta_s
     READ(10) e_piezo
     
-    write (*,*) beta_s(1),beta_s(5),beta_s(9)
-    write (*,*) e_piezo(10),e_piezo(14),e_piezo(12+6)
+!~     write (*,*) beta_s(1),beta_s(5),beta_s(9)
+!~     write (*,*) e_piezo(10),e_piezo(14),e_piezo(12+6)
     
     CLOSE(10)
     
