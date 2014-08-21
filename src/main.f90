@@ -117,6 +117,8 @@ PROGRAM acousticwaves
     INTEGER :: st
 
     INTEGER :: axis, ix, iy, iz, cont
+    
+    REAL(Double) :: TIME1,TIME2
 
     REAL(Double), DIMENSION(:,:,:), POINTER :: probe
     !REAL(Double), DIMENSION(1:3,1:Nstep, 1:Nprobe) :: probe = 0.0_dp
@@ -180,17 +182,17 @@ PROGRAM acousticwaves
     WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 
     CALL open_vtk_file(outfile)
     CALL write_volume_w1(outfile, data_name) !ok
+    
+    CALL CPU_TIME(TIME1) 
 
     DO step = 1, Nstep
         CALL v_half_step()
         CALL free_boundary_v()
         CALL dot_source()
         CALL share_v()
-        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL T_half_step()
         CALL free_boundary_T()
         CALL share_T()
-        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         IF (MOD(STEP, 100) .EQ. 0) THEN
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
             WRITE(outfile, 1000) me, step/100
@@ -198,21 +200,23 @@ PROGRAM acousticwaves
 !~             CALL open_vtk_file(outfile)
             CALL write_free_surface(outfile, data_name)
         END IF
-        cont = 1
-        DO ix = Nx/2-16, Nx/2+16, 4
-            DO iy = Ny/2-16, Ny/2+16, 4
-                DO iz = 1, 2*8+1, 2
-                    probe(:, step, cont) = (/ Vx(UROLL3(ix, iy, iz)), Vy(UROLL3(ix, iy, iz)), Vz(UROLL3(ix, iy, iz)) /)
-                    cont = cont + 1
-                END DO
-            END DO
-        END DO
+!~         cont = 1
+!~         DO ix = Nx/2-16, Nx/2+16, 4
+!~             DO iy = Ny/2-16, Ny/2+16, 4
+!~                 DO iz = 1, 2*8+1, 2
+!~                     probe(:, step, cont) = (/ Vx(UROLL3(ix, iy, iz)), Vy(UROLL3(ix, iy, iz)), Vz(UROLL3(ix, iy, iz)) /)
+!~                     cont = cont + 1
+!~                 END DO
+!~             END DO
+!~         END DO
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step, "  out of  ",Nstep
         END IF
-        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     END DO
     
+    CALL CPU_TIME(TIME2) 
+    
+    WRITE(*,*) TIME2-TIME1
     
     CALL deallocate_memory()
     ! Close out MPI

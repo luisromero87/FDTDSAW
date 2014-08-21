@@ -221,15 +221,15 @@ SUBROUTINE dot_source()
 
     INTEGER :: ix, iy, iz
 
-	IF (me==3) THEN
-	    ix = (Nx/2-2)*MOD(procsx,2)+Nx/2
-	    iy = (Ny/2-15)*MOD(procsy,2)+Ny/2
+	IF (procsx.EQ.(Nprocsx-1)/2 .AND. procsy.EQ.(Nprocsy-1)/2) THEN
+	    ix = (Nx/2-2)*MOD(Nprocsx-1,2)+Nx/2
+	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
 	    iz = 1
 !~ 	write(*,*) me, ix, iy, iz
-		DO ix=1, Nx-2
-	    Vz(UROLL3(ix, iy, iz)) = Vz(UROLL3(ix, iy, iz)) + &
-	    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-	    END DO
+!~ 		DO iy=1, Ny-2
+		    Vz(UROLL3(ix, iy, iz)) = Vz(UROLL3(ix, iy, iz)) + &
+		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+!~ 	    END DO
 	
 	    !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
 	END IF
@@ -329,6 +329,7 @@ SUBROUTINE share_v()
 			
 			
 		END IF
+		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 		!interfaces impares
         IF ( MOD(procsx,2)==1 .AND. (procsx<Nprocsx-1) ) THEN
 			
@@ -480,6 +481,7 @@ SUBROUTINE share_v()
 			CALL MPI_SEND(mpibuffery,3*Nz*Nx,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx,procsy-1)),me,MPI_COMM_WORLD,ierr)
 			
 		END IF
+		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 		!interfaces impares
         IF ( MOD(procsy,2)==1 .AND. (procsy<Nprocsy-1) ) THEN
 			
@@ -554,6 +556,7 @@ SUBROUTINE share_v()
 			CALL MPI_SEND(mpibuffery,3*Nz*Nx,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx,procsy-1)),me,MPI_COMM_WORLD,ierr)
 			
 		END IF
+		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 	END IF
 
 END SUBROUTINE share_v
@@ -706,6 +709,7 @@ SUBROUTINE share_T()
 			CALL MPI_SEND(mpibufferx,6*Nz*Ny,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx-1,procsy)),me,MPI_COMM_WORLD,ierr)
 			
 		END IF
+		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 		!interfaces impares
         IF ( MOD(procsx,2)==1 .AND. (procsx<Nprocsx-1) ) THEN
 			DO iz=0, Nz-1
@@ -974,6 +978,7 @@ SUBROUTINE share_T()
 			CALL MPI_SEND(mpibuffery,6*Nz*Nx,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx,procsy-1)),me,MPI_COMM_WORLD,ierr)
 			
 		END IF
+		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 		!interfaces impares
         IF ( MOD(procsy,2)==1 .AND. (procsy<Nprocsy-1) ) THEN
 			DO iz=0, Nz-1
@@ -1107,6 +1112,7 @@ SUBROUTINE share_T()
 			CALL MPI_SEND(mpibuffery,6*Nz*Nx,MPI_DOUBLE_PRECISION,int(UROLLPROC(procsx,procsy-1)),me,MPI_COMM_WORLD,ierr)
 			
 		END IF
+		CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 	END IF
 
 END SUBROUTINE share_T
