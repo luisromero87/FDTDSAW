@@ -16,7 +16,7 @@ MODULE constants_module
     REAL(Double), PARAMETER, PUBLIC :: clight = 299792458.0_dp
     COMPLEX(Double), PARAMETER, PUBLIC :: j1 = (0.0_dp, 1.0_dp)
 
-    INTEGER(Short), PARAMETER, PUBLIC :: name_len = 25
+    INTEGER(Short), PARAMETER, PUBLIC :: name_len = 35
 
     INTEGER, PARAMETER, PUBLIC :: x = 1
     INTEGER, PARAMETER, PUBLIC :: y = 2

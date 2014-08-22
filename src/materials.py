@@ -4,7 +4,7 @@ import struct
 #---------------------
 #      Bi12GeO20      |
 #---------------------
-f=open('bi12geo20','wb') 
+f=open('Materials/bi12geo20','wb') 
 
 # Density
 rho=9200.0
@@ -55,7 +55,7 @@ f.write(struct.pack('i',rlc))
 (e_piezo.transpose()).tofile(f)
 f.write(struct.pack('i',rlc))
 
-
+f.close()
 
 s=zeros((6,6))
 d=zeros((3,6))

@@ -19,7 +19,7 @@ SUBROUTINE load_PML()
 
     INTEGER :: ix, iy, iz, axis
     
-    WRITE(which, '(A,I3.3)') 'configfiles/PLM', me
+    WRITE(which, '(A,I3.3)') 'outputdata/weights/weights', me
     OPEN(UNIT = 11, FILE = which, FORM = 'unformatted', IOSTAT = st)
 
     DO axis = 1, 3

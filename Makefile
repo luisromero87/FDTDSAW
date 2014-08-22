@@ -10,7 +10,7 @@ CC=cc
 CCC=CC
 CXX=CC
 FC=mpif90
-FFLAGS= -O3 -fbackslash
+FFLAGS= -Ofast -fbackslash
 AS=as
 
 # Macros
@@ -45,6 +45,16 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/write_to_vtk.o \
 	${OBJECTDIR}/libs/time_step.o \
 	${OBJECTDIR}/fdtdsaw.o
+	
+WEIGHTSOBJECTFILES= \
+	${OBJECTDIR}/libs/type_kinds.o \
+	${OBJECTDIR}/libs/constants_module.o \
+	${OBJECTDIR}/libs/global_vars.o \
+	${OBJECTDIR}/libs/read_input_param.o \
+	${OBJECTDIR}/libs/uroll3.o \
+	${OBJECTDIR}/libs/load_pml.o \
+	${OBJECTDIR}/libs/write_to_vtk.o \
+	${OBJECTDIR}/weights.o
 
 #BUILD MAIN
 .PHONY: FDTDSAW
@@ -147,10 +157,25 @@ time_step: ${OBJECTDIR}/libs/time_step.o \
 ${OBJECTDIR}/libs/time_step.o: ${SRCLIBSDIR}/time_step.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/time_step.o ${SRCLIBSDIR}/time_step.f90
+	
+.PHONY: weights
+weights: ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights: ${OBJECTDIR}/weights.o ${WEIGHTSOBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata/weights
+	$(FC) $(FFLAGS) -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights ${WEIGHTSOBJECTFILES} ${LDLIBSOPTIONS} 
+	$(CP) -r ${SRCMATERIALSDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/  
+	$(CP) -r ${SRCCONFIGFILESDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/  
+${OBJECTDIR}/weights.o: ${SRCDIR}/weights.f90 \
+                        type_kinds \
+                        constants_module \
+                        global_vars
+	${MKDIR} -p ${OBJECTDIR}
+	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/weights.o ${SRCDIR}/weights.f90
 
 #CLEAN
 .PHONY: clean
 clean:
 	${RM} -rf ${OBJECTDIR}
 	${RM} -f *.mod
-	${RM} -rf ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata
+	${RM} -rf ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata/*

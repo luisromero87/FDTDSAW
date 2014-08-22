@@ -1,7 +1,4 @@
-src/configfiles/PLM0*
-dist/Release/Linux-x86/configfiles/*
-dist/Release/Linux-x86/
-dist/Release/Linux-x86/outputdata/*.vtk
+dist/Release/*
 *.vtk
 *.o
 *.mod
