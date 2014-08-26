@@ -110,6 +110,7 @@ PROGRAM acousticwaves
     !Functions
     INTEGER(Long) :: UROLL3
     INTEGER(Short) :: UROLLPROC
+!~     DOUBLE PRECISION MPI_WTIME()
     
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
     CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
@@ -171,19 +172,23 @@ PROGRAM acousticwaves
     offsety=procsy*(Ny-3)*deltay
     
     !Testing ROLLPROC and UROLLPROC
-    DO ix=0, ntasks
-        IF (me==ix) THEN
-            write(*,*) procsx, procsy, UROLLPROC(procsx, procsy)
-        END IF
-        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    END DO
+!~     DO ix=0, ntasks
+!~         IF (me==ix) THEN
+!~             write(*,*) procsx, procsy, UROLLPROC(procsx, procsy)
+!~         END IF
+!~         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!~     END DO
     
     CALL load_PML() !w1, w2 ...ok
     WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 
     CALL open_vtk_file(outfile)
     CALL write_volume_w1(outfile, data_name) !ok
     
-    CALL CPU_TIME(TIME1) 
+!~     CALL CPU_TIME(TIME1) 
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    TIME1=MPI_WTIME()
+    
+
 
     DO step = 1, Nstep
         CALL v_half_step()
@@ -197,7 +202,6 @@ PROGRAM acousticwaves
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
             WRITE(outfile, 1000) me, step/100
             data_name = 'v'
-!~             CALL open_vtk_file(outfile)
             CALL write_free_surface(outfile, data_name)
         END IF
 !~         cont = 1
@@ -214,16 +218,22 @@ PROGRAM acousticwaves
         END IF
     END DO
     
-    CALL CPU_TIME(TIME2) 
+!~     CALL CPU_TIME(TIME2) 
+    TIME2 = MPI_WTIME()
+    TIME1 = TIME2-TIME1
     
-    WRITE(*,*) TIME2-TIME1
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    
+    CALL MPI_REDUCE(TIME1,TIME2,1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
+    IF (me .EQ. 0) THEN
+        WRITE(*,*) TIME2
+        OPEN(UNIT=12, FILE='time', ACTION="write", position="append")
+        WRITE(12,*) TIME2
+    END IF
     
     CALL deallocate_memory()
     ! Close out MPI
     CALL mpi_finalize(ierr)
-!~     OPEN(UNIT = 12, FILE = 'probe', ACTION = "write", STATUS = "replace", form = 'unformatted')
-!~     write(12) probe
-!~     CLOSE(12)
 
 
 
