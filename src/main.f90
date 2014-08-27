@@ -168,16 +168,20 @@ PROGRAM acousticwaves
     
     !TWO DIMENSIONAL (x,y) PROCESS INDEX AND OFFSET
     CALL ROLLPROC()
+    nUP = UROLLPROC(procsx, procsy+1)
+    nDOWN = UROLLPROC(procsx, procsy-1)
+    nRIGHT = UROLLPROC(procsx+1, procsy)
+    nLEFT = UROLLPROC(procsx-1, procsy)
     offsetx=procsx*(Nx-3)*deltax
     offsety=procsy*(Ny-3)*deltay
     
     !Testing ROLLPROC and UROLLPROC
-!~     DO ix=0, ntasks
-!~         IF (me==ix) THEN
-!~             write(*,*) procsx, procsy, UROLLPROC(procsx, procsy)
-!~         END IF
-!~         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-!~     END DO
+!     DO ix=0, ntasks
+!         IF (me==ix) THEN
+!             write(*,*) procsx, procsy, UROLLPROC(procsx, procsy)
+!         END IF
+!         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!     END DO
     
     CALL load_PML() !w1, w2 ...ok
     WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 

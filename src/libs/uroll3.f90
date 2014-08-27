@@ -21,7 +21,7 @@ INTEGER(Short) FUNCTION UROLLPROC(px, py)
 
     INTEGER(Short), INTENT(IN) :: px, py
 
-    UROLLPROC = py * Nprocsx + px
+    UROLLPROC = MOD(py+Nprocsy,Nprocsy) * Nprocsx + MOD(px+Nprocsx,Nprocsx)
 
     RETURN
 

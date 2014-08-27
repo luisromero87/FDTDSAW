@@ -27,6 +27,7 @@ MODULE global_vars
     INTEGER(Short), PUBLIC :: Nprocsy=1
     INTEGER(Short), PUBLIC :: procsx=1
     INTEGER(Short), PUBLIC :: procsy=1
+    INTEGER(Short), PUBLIC :: nUP, nDOWN, nLEFT, nRIGHT
 
     INTEGER(Long), PUBLIC :: STEP
     INTEGER(Long), PUBLIC :: Nstep=5000
