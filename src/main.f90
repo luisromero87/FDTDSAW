@@ -195,13 +195,14 @@ PROGRAM acousticwaves
 
 
     DO step = 1, Nstep
+        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+        CALL share_T()
         CALL v_half_step()
         CALL free_boundary_v()
         CALL dot_source()
         CALL share_v()
         CALL T_half_step()
         CALL free_boundary_T()
-        CALL share_T()
         IF (MOD(STEP, 100) .EQ. 0) THEN
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
             WRITE(outfile, 1000) me, step/100
