@@ -15,7 +15,8 @@ MODULE global_vars
     
 !~     REAL(Double), DIMENSION(:), POINTER :: mpibufferx, mpibuffery
     INTEGER, DIMENSION(MPI_STATUS_SIZE), PUBLIC :: mpistatus
-    INTEGER, PUBLIC :: ierr, ntasks, me, req1, req2
+    INTEGER, PUBLIC :: ierr, ntasks, me
+    INTEGER :: stats(MPI_STATUS_SIZE,8), reqs(8)
     
     CHARACTER(LEN = name_len), PUBLIC :: material = 'bi12geo20' !Default
 
@@ -27,7 +28,22 @@ MODULE global_vars
     INTEGER(Short), PUBLIC :: Nprocsy=1
     INTEGER(Short), PUBLIC :: procsx=1
     INTEGER(Short), PUBLIC :: procsy=1
-    INTEGER(Short), PUBLIC :: nUP, nDOWN, nLEFT, nRIGHT
+    INTEGER, PUBLIC :: nUP, nDOWN, nLEFT, nRIGHT
+    
+    INTEGER(Long), PUBLIC :: vbuffsizex
+    INTEGER(Long), PUBLIC :: vbuffsizey
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: mpibufferx
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: mpibuffery
+    
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: recvbuff_UP
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: recvbuff_DOWN
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: recvbuff_RIGHT
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: recvbuff_LEFT
+    
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: sendbuff_UP
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: sendbuff_DOWN
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: sendbuff_RIGHT
+	REAL(Double), DIMENSION (:), POINTER, PUBLIC :: sendbuff_LEFT
 
     INTEGER(Long), PUBLIC :: STEP
     INTEGER(Long), PUBLIC :: Nstep=5000

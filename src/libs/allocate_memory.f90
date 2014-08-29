@@ -75,6 +75,19 @@ SUBROUTINE allocate_memory()
     
     ALLOCATE(w1(0:NCeldas - 1, 1:3))
     ALLOCATE(w2(0:NCeldas - 1, 1:3))
+    
+    ALLOCATE(mpibufferx(0:6*Nz*Ny-1))
+    ALLOCATE(mpibuffery(0:6*Nz*Nx-1))
+    
+    ALLOCATE(recvbuff_UP(0:6*Nz*Nx-1))
+    ALLOCATE(recvbuff_DOWN(0:6*Nz*Nx-1))
+    ALLOCATE(recvbuff_RIGHT(0:6*Nz*Ny-1))
+    ALLOCATE(recvbuff_LEFT(0:6*Nz*Ny-1))
+    
+    ALLOCATE(sendbuff_UP(0:6*Nz*Nx-1))
+    ALLOCATE(sendbuff_DOWN(0:6*Nz*Nx-1))
+    ALLOCATE(sendbuff_RIGHT(0:6*Nz*Ny-1))
+    ALLOCATE(sendbuff_LEFT(0:6*Nz*Ny-1))
 
 
     
