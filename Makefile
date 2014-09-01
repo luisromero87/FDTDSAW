@@ -46,15 +46,14 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/time_step.o \
 	${OBJECTDIR}/fdtdsaw.o
 	
-WEIGHTSOBJECTFILES= \
+COMMONOBJECTFILES= \
 	${OBJECTDIR}/libs/type_kinds.o \
 	${OBJECTDIR}/libs/constants_module.o \
 	${OBJECTDIR}/libs/global_vars.o \
 	${OBJECTDIR}/libs/read_input_param.o \
 	${OBJECTDIR}/libs/uroll3.o \
 	${OBJECTDIR}/libs/load_pml.o \
-	${OBJECTDIR}/libs/write_to_vtk.o \
-	${OBJECTDIR}/weights.o
+	${OBJECTDIR}/libs/write_to_vtk.o 
 
 #BUILD MAIN
 .PHONY: FDTDSAW
@@ -161,10 +160,10 @@ ${OBJECTDIR}/libs/time_step.o: ${SRCLIBSDIR}/time_step.f90
 	
 .PHONY: weights
 weights: ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights: ${OBJECTDIR}/weights.o ${WEIGHTSOBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights: ${OBJECTDIR}/weights.o ${COMMONOBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata/weights
-	$(FC) $(FFLAGS) -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights ${WEIGHTSOBJECTFILES} ${LDLIBSOPTIONS} 
+	$(FC) $(FFLAGS) -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights ${COMMONOBJECTFILES} ${OBJECTDIR}/weights.o ${LDLIBSOPTIONS} 
 	$(CP) -rn ${SRCMATERIALSDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/  
 	$(CP) -rn ${SRCCONFIGFILESDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/  
 ${OBJECTDIR}/weights.o: ${SRCDIR}/weights.f90 \
@@ -173,6 +172,23 @@ ${OBJECTDIR}/weights.o: ${SRCDIR}/weights.f90 \
                         global_vars
 	${MKDIR} -p ${OBJECTDIR}
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/weights.o ${SRCDIR}/weights.f90
+	
+.PHONY: pre_proc_d
+pre_proc_d: ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pre_proc_d
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pre_proc_d: ${OBJECTDIR}/pre_proc_d.o ${COMMONOBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata/IDT
+	$(FC) $(FFLAGS) -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pre_proc_d ${COMMONOBJECTFILES} ${OBJECTDIR}/pre_proc_d.o ${LDLIBSOPTIONS} 
+	$(CP) -rn ${SRCMATERIALSDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/  
+	$(CP) -rn ${SRCCONFIGFILESDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/  
+${OBJECTDIR}/pre_proc_d.o: ${SRCDIR}/pre_proc_d.f90 \
+                        type_kinds \
+                        constants_module \
+                        global_vars
+	${MKDIR} -p ${OBJECTDIR}
+	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/pre_proc_d.o ${SRCDIR}/pre_proc_d.f90
+
+
 
 #CLEAN
 .PHONY: clean

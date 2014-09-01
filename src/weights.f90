@@ -53,13 +53,11 @@ PROGRAM weights
             CHARACTER(LEN = name_len), INTENT(IN) :: outfile
         END SUBROUTINE
 
-        SUBROUTINE write_volume_w1(outfile, data_name)
+        SUBROUTINE write_volume_w1()
             USE Type_Kinds
             USE Constants_Module
             USE Global_Vars
             IMPLICIT NONE
-            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
-            CHARACTER(LEN = name_len), INTENT(IN) :: data_name
         END SUBROUTINE 
     END INTERFACE
 
@@ -101,7 +99,7 @@ PROGRAM weights
     CALL mpi_bcast(deltaz, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nprocsx, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nprocsy, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    IF (Nprocsx*Nprocsy>ntasks) THEN
+    IF (Nprocsx*Nprocsy .NE. ntasks) THEN
         IF (me==0) THEN
             WRITE(*,*) "Min procs requiered is ", Nprocsx*Nprocsy
         END IF
@@ -118,7 +116,7 @@ PROGRAM weights
     w2 = dt/deltax
         
     m = 1.55_dp
-    PMLwidth = 10
+    PMLwidth = 3
     smax=0.0041_dp*PMLwidth/dt
         
     !TWO DIMENSIONAL (x,y) PROCESS INDEX AND OFFSET
@@ -196,9 +194,7 @@ PROGRAM weights
 	
 	
     CALL load_PML() 
-    WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 
-    CALL open_vtk_file(outfile)
-    CALL write_volume_w1(outfile, data_name)
+    CALL write_volume_w1()
     
         
     !DEALLOCATE ALL VARIABLES

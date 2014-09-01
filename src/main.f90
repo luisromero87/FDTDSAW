@@ -32,6 +32,13 @@ PROGRAM acousticwaves
             USE Global_Vars
             IMPLICIT NONE
         END SUBROUTINE load_PML
+
+        SUBROUTINE load_D0()
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE
+        END SUBROUTINE load_D0
         
         SUBROUTINE share_v()
 	        USE MPI
@@ -77,7 +84,7 @@ PROGRAM acousticwaves
             IMPLICIT NONE
 
             CHARACTER(LEN = name_len), INTENT(IN) :: outfile
-        END SUBROUTINE
+        END SUBROUTINE open_vtk_file
 
         SUBROUTINE write_free_surface(outfile, data_name)
             USE Type_Kinds
@@ -86,7 +93,7 @@ PROGRAM acousticwaves
             IMPLICIT NONE
             CHARACTER(LEN = name_len), INTENT(IN) :: outfile
             CHARACTER(LEN = name_len), INTENT(IN) :: data_name
-        END SUBROUTINE
+        END SUBROUTINE write_free_surface
 
         SUBROUTINE write_volume_v(outfile, data_name)
             USE Type_Kinds
@@ -95,16 +102,28 @@ PROGRAM acousticwaves
             IMPLICIT NONE
             CHARACTER(LEN = name_len), INTENT(IN) :: outfile
             CHARACTER(LEN = name_len), INTENT(IN) :: data_name
-        END SUBROUTINE
+        END SUBROUTINE write_volume_v
 
-        SUBROUTINE write_volume_w1(outfile, data_name)
+        SUBROUTINE write_volume_w1()
             USE Type_Kinds
             USE Constants_Module
             USE Global_Vars
             IMPLICIT NONE
-            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
-            CHARACTER(LEN = name_len), INTENT(IN) :: data_name
-        END SUBROUTINE 
+        END SUBROUTINE write_volume_w1
+
+        SUBROUTINE write_volume_D0()
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE 
+        END SUBROUTINE write_volume_D0
+
+        SUBROUTINE xzplane()
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE 
+        END SUBROUTINE xzplane
     END INTERFACE
 
     !Functions
@@ -149,6 +168,8 @@ PROGRAM acousticwaves
         STOP
     END IF
     
+    CALL SYSTEM('mkdir -p outputdata/IDT')
+    
     !ALLOCATE THE MEMORY FOR ALL VARIABLES
     CALL allocate_memory()
     
@@ -184,9 +205,9 @@ PROGRAM acousticwaves
 !     END DO
     
     CALL load_PML() !w1, w2 ...ok
-    WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 
-    CALL open_vtk_file(outfile)
-    CALL write_volume_w1(outfile, data_name) !ok
+    CALL load_D0() !w1, w2 ...ok
+    CALL write_volume_w1() !ok
+    CALL write_volume_D0() !ok
     
 !     CALL CPU_TIME(TIME1) 
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -199,11 +220,13 @@ PROGRAM acousticwaves
         CALL share_T()
         CALL v_half_step()
         CALL free_boundary_v()
-        CALL dot_source()
+!        CALL dot_source()
+        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
         CALL T_half_step()
         CALL free_boundary_T()
         IF (MOD(STEP, 100) .EQ. 0) THEN
+            CALL xzplane()
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
             WRITE(outfile, 1000) me, step/100
             data_name = 'v'

@@ -27,10 +27,11 @@ MODULE constants_module
     
     CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: PLM_archive='configfiles/PLM'
     CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: sim_config='configfiles/sim.config'
+    CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: idt_file='configfiles/idt2.txt'
     CHARACTER(LEN=10), PARAMETER, PUBLIC :: Materials_dir='Materials/'
     
     
-    REAL(Double), PARAMETER, PUBLIC :: PWIDTH=0.2e-9	
+    REAL(Double), PARAMETER, PUBLIC :: PWIDTH=0.25e-9
 
 
 END MODULE constants_module

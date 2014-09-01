@@ -138,35 +138,177 @@ SUBROUTINE write_free_surface (outfile, data_name)
     
 END SUBROUTINE write_free_surface
 
-SUBROUTINE write_volume_w1 (outfile, data_name)
+SUBROUTINE write_volume_w1 ()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
     
-    CHARACTER(LEN=name_len), INTENT(IN) :: data_name
-    CHARACTER(LEN=name_len), INTENT(IN) :: outfile
-    
     INTEGER(Long) UROLL3
+    
+    CHARACTER(LEN=name_len) :: data_name ='w1'
+    CHARACTER(LEN=name_len) :: outfile
     
     INTEGER :: ix,iy,iz,axis
     
+    WRITE(outfile, '(A,i3.3,A)') 'w1_',me,'.vtk' 
+    
+    2000 format(a)
+    3000 format('DIMENSIONS ',i4,i4,i4)
+    4000 format(1p,e12.6)
+    
+    OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="replace")
+    
+    WRITE(12,2000) "# vtk DataFile Version 2.0"
+    WRITE(12,2000) "Volume data"
+    WRITE(12,2000) "ASCII"
+    WRITE(12,2000) "DATASET RECTILINEAR_GRID"
+    WRITE(12,3000) Nx-2,Ny-2,Nz-1
+    
+    WRITE(12,*) "X_COORDINATES", Nx-2, "double"
+    DO ix = 0, Nx-3
+      WRITE(12,4000) ix*deltax+offsetx
+    END DO
+    WRITE(12,*) "Y_COORDINATES", Ny-2, "double"
+    DO iy = 0, Ny-3
+      WRITE(12,4000) iy*deltay+offsety
+    END DO
+    WRITE(12,*) "Z_COORDINATES", Nz-1, "double"
+    DO iz = 1, Nz-1
+      WRITE(12,4000) iz*deltaz
+    END DO
+    
     5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
-    
-    OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="old", position="append")
-    
+        
     WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
     WRITE(12,*) "LOOKUP_TABLE default"
     DO iz = 1, Nz-1
-      DO iy = 1, Ny-2
+    DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
 	    write(12,5000) REAL(w1(UROLL3(ix,iy,iz),x),Single),REAL(w1(UROLL3(ix,iy,iz),y),Single),REAL(w1(UROLL3(ix,iy,iz),z),Single)
 	END DO
-      END DO 
+    END DO 
     END DO
-!~     write(*,*)'file closed'
     
     CLOSE(12)
     
 END SUBROUTINE write_volume_w1
+
+SUBROUTINE xzplane()
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+    IMPLICIT NONE
+    
+    INTEGER(Long) UROLL3
+    
+    CHARACTER(LEN=name_len) :: data_name ='v'
+    CHARACTER(LEN=name_len) :: outfile
+    
+    INTEGER :: ix,iy,iz,axis
+    
+    
+	IF (procsy.EQ.(Nprocsy-1)/2) THEN
+	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
+    
+        WRITE(outfile, '(A,i3.3,A,i3.3,A)') 'v_yzplane_',me,'_',step/100,'.vtk' 
+        
+        2000 format(a)
+        3000 format('DIMENSIONS ',i4,i4,i4)
+        4000 format(1p,e12.6)
+        
+        OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="replace")
+        
+        WRITE(12,2000) "# vtk DataFile Version 2.0"
+        WRITE(12,2000) "Volume data"
+        WRITE(12,2000) "ASCII"
+        WRITE(12,2000) "DATASET RECTILINEAR_GRID"
+        WRITE(12,3000) Nx-2,1,Nz-1
+        
+        WRITE(12,*) "X_COORDINATES", Nx-2, "double"
+        DO ix = 0, Nx-3
+          WRITE(12,4000) ix*deltax+offsetx
+        END DO
+        WRITE(12,*) "Y_COORDINATES", 1, "double"
+!        DO iy = 0, Ny-3
+          WRITE(12,4000) iy*deltay+offsety
+!        END DO
+        WRITE(12,*) "Z_COORDINATES", Nz-1, "double"
+        DO iz = 1, Nz-1
+          WRITE(12,4000) iz*deltaz
+        END DO
+        
+        5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
+            
+        WRITE(12,*) "POINT_DATA", (Nx-2)*(1)*(Nz-1)
+        WRITE(12,*) "SCALARS "//data_name//" double 3"
+        WRITE(12,*) "LOOKUP_TABLE default"
+                
+        DO iz = 1, Nz-1
+        DO ix = 1, Nx-2
+            write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
+        END DO 
+        END DO
+        
+        CLOSE(12)
+    END IF
+    
+END SUBROUTINE xzplane
+
+SUBROUTINE write_volume_D0 ()
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+    IMPLICIT NONE
+    
+    INTEGER(Long) UROLL3
+    
+    CHARACTER(LEN=name_len) :: data_name ='D0'
+    CHARACTER(LEN=name_len) :: outfile
+    
+    INTEGER :: ix,iy,iz,axis
+    
+    WRITE(outfile, '(A,i3.3,A)') 'D0_',me,'.vtk' 
+    
+    2000 format(a)
+    3000 format('DIMENSIONS ',i4,i4,i4)
+    4000 format(1p,e12.6)
+    
+    OPEN(UNIT=12, FILE='outputdata/IDT/'//outfile, ACTION="write", STATUS="replace")
+    
+    WRITE(12,2000) "# vtk DataFile Version 2.0"
+    WRITE(12,2000) "Volume data"
+    WRITE(12,2000) "ASCII"
+    WRITE(12,2000) "DATASET RECTILINEAR_GRID"
+    WRITE(12,3000) Nx-2,Ny-2,Nz-1
+    
+    WRITE(12,*) "X_COORDINATES", Nx-2, "double"
+    DO ix = 0, Nx-3
+      WRITE(12,4000) ix*deltax+offsetx
+    END DO
+    WRITE(12,*) "Y_COORDINATES", Ny-2, "double"
+    DO iy = 0, Ny-3
+      WRITE(12,4000) iy*deltay+offsety
+    END DO
+    WRITE(12,*) "Z_COORDINATES", Nz-1, "double"
+    DO iz = 1, Nz-1
+      WRITE(12,4000) iz*deltaz
+    END DO
+    
+    5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
+        
+    WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
+    WRITE(12,*) "SCALARS "//data_name//" double 3"
+    WRITE(12,*) "LOOKUP_TABLE default"
+    DO iz = 1, Nz-1
+    DO iy = 1, Ny-2
+	DO ix = 1, Nx-2
+	    write(12,5000) REAL(D0x(UROLL3(ix,iy,iz)),Single),REAL(D0y(UROLL3(ix,iy,iz)),Single),REAL(D0z(UROLL3(ix,iy,iz)),Single)
+	END DO
+    END DO 
+    END DO
+    
+    CLOSE(12)
+    
+END SUBROUTINE write_volume_D0

@@ -373,6 +373,8 @@ SUBROUTINE T_half_step()
                 w2(thiscell, z) * c_E(12 + 3)*(dVzdz)
                 T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell)
                 
+                phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
+                
                 dDx(thiscell)=D0x(thiscell)*phase
                 dDy(thiscell)=D0y(thiscell)*phase
                 dDz(thiscell)=D0z(thiscell)*phase
