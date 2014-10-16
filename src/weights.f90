@@ -116,7 +116,7 @@ PROGRAM weights
     w2 = dt/deltax
         
     m = 1.55_dp
-    PMLwidth = 3
+    PMLwidth = 0
     smax=0.0041_dp*PMLwidth/dt
         
     !TWO DIMENSIONAL (x,y) PROCESS INDEX AND OFFSET

@@ -113,7 +113,7 @@ SUBROUTINE write_free_surface (outfile, data_name)
       WRITE(12,4000) iy*deltay+offsety
     END DO
     WRITE(12,*) "Z_COORDINATES", 1, "double"
-    DO iz = 1, 1
+    DO iz = Nz/2, Nz/2
       WRITE(12,4000) iz*deltaz
     END DO
     
@@ -125,7 +125,7 @@ SUBROUTINE write_free_surface (outfile, data_name)
     WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
     WRITE(12,*) "LOOKUP_TABLE default"
-    iz = 1
+    iz = Nz/2
     DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
 	    write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
