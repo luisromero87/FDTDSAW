@@ -124,6 +124,9 @@ MODULE global_vars
     !PML weights
     REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: w1
     REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: w2
+    
+    REAL(Double), PUBLIC :: U_k
+    REAL(Double), PUBLIC :: U_k_total
 
 END MODULE global_vars
 

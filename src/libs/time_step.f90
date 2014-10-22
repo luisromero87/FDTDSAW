@@ -544,6 +544,31 @@ END SUBROUTINE share_T
 
 
 
+SUBROUTINE Kinetic_Energy()
+	USE mpi
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+	IMPLICIT NONE
+	INTEGER(Long) :: UROLL3
+	INTEGER(Short) UROLLPROC
+	INTEGER :: ix, iy, iz, nextprocid
+    INTEGER(Long) :: thiscell
+    
+    U_k=0;
+    DO iz = 1, Nz - 2
+        DO iy = 1, Ny - 2
+            DO ix = 1, Nx - 2
+                thiscell=UROLL3(ix, iy, iz)
+                U_k=U_k+Vx(thiscell)**2+Vy(thiscell)**2+Vz(thiscell)**2
+            END DO
+        END DO
+    END DO
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    CALL MPI_REDUCE(U_k, U_k_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+    
+END SUBROUTINE Kinetic_Energy
+
 
 
 

@@ -124,6 +124,15 @@ PROGRAM acousticwaves
             USE Global_Vars
             IMPLICIT NONE 
         END SUBROUTINE xzplane
+        
+        SUBROUTINE Kinetic_Energy()
+            USE mpi
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE
+        END SUBROUTINE Kinetic_Energy
+        
     END INTERFACE
 
     !Functions
@@ -213,7 +222,7 @@ PROGRAM acousticwaves
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     TIME1=MPI_WTIME()
     
-
+    OPEN(UNIT=31, FILE='outputdata/U_k.dat', ACTION="write", STATUS="replace")
 
     DO step = 1, Nstep
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -224,11 +233,12 @@ PROGRAM acousticwaves
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
         CALL T_half_step()
+        CALL Kinetic_Energy()
 !~         CALL free_boundary_T()
-        IF (MOD(STEP, 10) .EQ. 0) THEN
+        IF (MOD(STEP, 5) .EQ. 0) THEN
             CALL xzplane()
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
-            WRITE(outfile, 1000) me, step/10
+            WRITE(outfile, 1000) me, step/5
             data_name = 'v'
             CALL write_free_surface(outfile, data_name)
         END IF
@@ -243,8 +253,11 @@ PROGRAM acousticwaves
 !         END DO
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step, "  out of  ",Nstep
+            write(31,*) U_k_total
         END IF
     END DO
+    
+    close(31)
     
 !     CALL CPU_TIME(TIME2) 
     TIME2 = MPI_WTIME()
