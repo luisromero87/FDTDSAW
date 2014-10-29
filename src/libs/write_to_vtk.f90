@@ -222,7 +222,7 @@ SUBROUTINE xzplane()
 	IF (procsy.EQ.(Nprocsy-1)/2) THEN
 	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
     
-        WRITE(outfile, '(A,i3.3,A,i3.3,A)') 'v_yzplane_',me,'_',step/100,'.vtk' 
+        WRITE(outfile, '(A,i4.4,A,i4.4,A)') 'v_yzplane_',me,'_',step/100,'.vtk' 
         
         2000 format(a)
         3000 format('DIMENSIONS ',i4,i4,i4)
@@ -252,12 +252,20 @@ SUBROUTINE xzplane()
         5000 format(1pe10.3,1x,1pe10.3,1x,1pe10.3)
             
         WRITE(12,*) "POINT_DATA", (Nx-2)*(1)*(Nz-1)
-        WRITE(12,*) "SCALARS "//data_name//" double 3"
+        WRITE(12,*) "SCALARS "//"v"//" double 3"
         WRITE(12,*) "LOOKUP_TABLE default"
                 
         DO iz = 1, Nz-1
         DO ix = 1, Nx-2
             write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
+        END DO 
+        END DO
+        WRITE(12,*) "SCALARS "//"E"//" double 3"
+        WRITE(12,*) "LOOKUP_TABLE default"
+                
+        DO iz = 1, Nz-1
+        DO ix = 1, Nx-2
+            write(12,5000) REAL(Ex(UROLL3(ix,iy,iz)),Single),REAL(Ey(UROLL3(ix,iy,iz)),Single),REAL(Ez(UROLL3(ix,iy,iz)),Single)
         END DO 
         END DO
         

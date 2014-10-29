@@ -254,14 +254,14 @@ PROGRAM acousticwaves
         CALL Strain_Energy()
         CALL Elec_Energy()
 !~         CALL free_boundary_T()
-        IF (MOD(STEP, 1) .EQ. 0) THEN
-!            CALL xzplane()
+        IF (MOD(STEP, 100) .EQ. 0) THEN
+            CALL xzplane()
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
-            WRITE(outfile, 1000) me, step/1
+            WRITE(outfile, 1000) me, step/100
             data_name = 'v'
-!            CALL write_free_surface(outfile, data_name)
-            CALL open_vtk_file(outfile)
-            CALL write_volume_v(outfile, data_name)
+            CALL write_free_surface(outfile, data_name)
+!            CALL open_vtk_file(outfile)
+!            CALL write_volume_v(outfile, data_name)
         END IF
 !         cont = 1
 !         DO ix = Nx/2-16, Nx/2+16, 4
