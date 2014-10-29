@@ -133,6 +133,22 @@ PROGRAM acousticwaves
             IMPLICIT NONE
         END SUBROUTINE Kinetic_Energy
         
+        SUBROUTINE Strain_Energy()
+            USE mpi
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE
+        END SUBROUTINE Strain_Energy
+        
+        SUBROUTINE Elec_Energy()
+            USE mpi
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            IMPLICIT NONE
+        END SUBROUTINE Elec_Energy
+        
     END INTERFACE
 
     !Functions
@@ -188,6 +204,7 @@ PROGRAM acousticwaves
     END IF
     CALL mpi_bcast(rho_inv, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(c_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(s_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(beta_s, 9, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(e_piezo, 18, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     
@@ -234,13 +251,17 @@ PROGRAM acousticwaves
         CALL share_v()
         CALL T_half_step()
         CALL Kinetic_Energy()
+        CALL Strain_Energy()
+        CALL Elec_Energy()
 !~         CALL free_boundary_T()
-        IF (MOD(STEP, 5) .EQ. 0) THEN
-            CALL xzplane()
+        IF (MOD(STEP, 1) .EQ. 0) THEN
+!            CALL xzplane()
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
-            WRITE(outfile, 1000) me, step/5
+            WRITE(outfile, 1000) me, step/1
             data_name = 'v'
-            CALL write_free_surface(outfile, data_name)
+!            CALL write_free_surface(outfile, data_name)
+            CALL open_vtk_file(outfile)
+            CALL write_volume_v(outfile, data_name)
         END IF
 !         cont = 1
 !         DO ix = Nx/2-16, Nx/2+16, 4
@@ -253,7 +274,7 @@ PROGRAM acousticwaves
 !         END DO
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step, "  out of  ",Nstep
-            write(31,*) U_k_total
+            write(31,*) U_k_total/rho_inv, U_s_total, U_e_total/beta_s(1)*dt
         END IF
     END DO
     

@@ -62,12 +62,22 @@ SUBROUTINE write_volume_v (outfile, data_name)
     OPEN(UNIT=12, FILE='outputdata/'//outfile, ACTION="write", STATUS="old", position="append")
     
     WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(Nz-1)
-    WRITE(12,*) "SCALARS "//data_name//" double 3"
+    WRITE(12,*) "SCALARS "//"v"//" double 3"
     WRITE(12,*) "LOOKUP_TABLE default"
     DO iz = 1, Nz-1
       DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
 	    write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
+	END DO
+      END DO 
+    END DO
+    
+    WRITE(12,*) "SCALARS "//"E"//" double 3"
+    WRITE(12,*) "LOOKUP_TABLE default"
+    DO iz = 1, Nz-1
+      DO iy = 1, Ny-2
+	DO ix = 1, Nx-2
+	    write(12,5000) REAL(Ex(UROLL3(ix,iy,iz)),Single),REAL(Ey(UROLL3(ix,iy,iz)),Single),REAL(Ez(UROLL3(ix,iy,iz)),Single)
 	END DO
       END DO 
     END DO

@@ -27,6 +27,15 @@ f.write(struct.pack('i',rlc))
 c_E.tofile(f)
 f.write(struct.pack('i',rlc))
 
+# Compliance at constant E
+s_E=linalg.inv(c_E)
+
+rlc=8*6*6
+
+f.write(struct.pack('i',rlc))
+s_E.tofile(f)
+f.write(struct.pack('i',rlc))
+
 #Electric permitivity 
 eps_s=zeros((3,3),dtype='float64')
 beta_s=zeros((3,3),dtype='float64')

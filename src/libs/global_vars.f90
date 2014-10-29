@@ -59,7 +59,7 @@ MODULE global_vars
 
     !Material properties
     REAL(Double), PUBLIC :: rho_inv = 0.0_dp
-    REAL(Double), DIMENSION(:), POINTER, PUBLIC :: c_E
+    REAL(Double), DIMENSION(:), POINTER, PUBLIC :: c_E, s_E
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: beta_s
     REAL(Double), DIMENSION(:), POINTER, PUBLIC :: e_piezo
 
@@ -107,6 +107,10 @@ MODULE global_vars
     REAL(Double), DIMENSION(:), POINTER :: T6_y
     
     !Electrical variable
+    REAL(Double), DIMENSION(:), POINTER :: Ex
+    REAL(Double), DIMENSION(:), POINTER :: Ey
+    REAL(Double), DIMENSION(:), POINTER :: Ez
+    
     REAL(Double), DIMENSION(:), POINTER :: dEx
     REAL(Double), DIMENSION(:), POINTER :: dEy
     REAL(Double), DIMENSION(:), POINTER :: dEz
@@ -119,6 +123,10 @@ MODULE global_vars
     REAL(Double), DIMENSION(:), POINTER :: D0y
     REAL(Double), DIMENSION(:), POINTER :: D0z
     
+    REAL(Double), DIMENSION(:), POINTER :: Disx
+    REAL(Double), DIMENSION(:), POINTER :: Disy
+    REAL(Double), DIMENSION(:), POINTER :: Disz
+    
     REAL(Double) :: phase=0.0_dp
 
     !PML weights
@@ -127,6 +135,13 @@ MODULE global_vars
     
     REAL(Double), PUBLIC :: U_k
     REAL(Double), PUBLIC :: U_k_total
+    
+    REAL(Double), PUBLIC :: S1,S2,S3,S4,S5,S6
+    REAL(Double), PUBLIC :: U_s
+    REAL(Double), PUBLIC :: U_s_total
+    
+    REAL(Double), PUBLIC :: U_e
+    REAL(Double), PUBLIC :: U_e_total
 
 END MODULE global_vars
 

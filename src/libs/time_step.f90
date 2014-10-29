@@ -386,6 +386,14 @@ SUBROUTINE T_half_step()
                 T6(thiscell) = T6_x(thiscell) + T6_y(thiscell) + &
                 dEz(thiscell)*e_piezo(18)*dt
                 END IF
+                
+                Disx(thiscell)=Disx(thiscell)+ dDx(thiscell)
+                Disy(thiscell)=Disy(thiscell)+ dDy(thiscell)
+                Disz(thiscell)=Disz(thiscell)+ dDz(thiscell)
+                
+                Ex(thiscell)=Ex(thiscell)+ dEx(thiscell)
+                Ey(thiscell)=Ey(thiscell)+ dEy(thiscell)
+                Ez(thiscell)=Ez(thiscell)+ dEz(thiscell)
 
             END DO
         END DO
@@ -568,6 +576,71 @@ SUBROUTINE Kinetic_Energy()
     CALL MPI_REDUCE(U_k, U_k_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
     
 END SUBROUTINE Kinetic_Energy
+
+
+SUBROUTINE Strain_Energy()
+	USE mpi
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+	IMPLICIT NONE
+	INTEGER(Long) :: UROLL3
+	INTEGER(Short) UROLLPROC
+	INTEGER :: ix, iy, iz, nextprocid
+    INTEGER(Long) :: thiscell
+    REAL(Double) :: aux
+    
+    U_s=0;
+    DO iz = 1, Nz - 2
+        DO iy = 1, Ny - 2
+            DO ix = 1, Nx - 2
+                thiscell=UROLL3(ix, iy, iz)
+                S1 = s_E(1)*T1(thiscell)+s_E(2)*T2(thiscell)+s_E(2)*T3(thiscell)
+                S2 = s_E(1+6)*T1(thiscell)+s_E(2+6)*T2(thiscell)+s_E(2+6)*T3(thiscell)
+                S3 = s_E(1+12)*T1(thiscell)+s_E(2+12)*T2(thiscell)+s_E(2+12)*T3(thiscell)
+                S4 = s_E(4+18)*T4(thiscell)
+                S5 = s_E(5+24)*T5(thiscell)
+                S6 = s_E(6+30)*T6(thiscell)
+                aux = S1*(S1*c_E(1)+S2*c_E(2)+S3*c_E(3)) +&
+                      S2*(S1*c_E(1+6)+S2*c_E(2+6)+S3*c_E(3+6)) +&
+                      S3*(S1*c_E(1+12)+S2*c_E(2+12)+S3*c_E(3+12)) +&
+                      S4**2*c_E(4+18) +&
+                      S5**2*c_E(5+24) +&
+                      S6**2*c_E(6+30)
+                U_s=U_s+aux
+            END DO
+        END DO
+    END DO
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    CALL MPI_REDUCE(U_s, U_s_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+    
+END SUBROUTINE Strain_Energy
+
+SUBROUTINE Elec_Energy()
+	USE mpi
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+	IMPLICIT NONE
+	INTEGER(Long) :: UROLL3
+	INTEGER(Short) UROLLPROC
+	INTEGER :: ix, iy, iz, nextprocid
+    INTEGER(Long) :: thiscell
+    
+    U_e=0;
+    DO iz = 1, Nz - 2
+        DO iy = 1, Ny - 2
+            DO ix = 1, Nx - 2
+                thiscell=UROLL3(ix, iy, iz)
+                U_e=U_e+Ex(thiscell)*Ex(thiscell)+Ey(thiscell)*Ey(thiscell)+&
+                Ez(thiscell)*Ez(thiscell)
+            END DO
+        END DO
+    END DO
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    CALL MPI_REDUCE(U_e, U_e_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+    
+END SUBROUTINE Elec_Energy
 
 
 

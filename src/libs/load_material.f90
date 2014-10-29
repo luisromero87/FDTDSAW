@@ -16,6 +16,7 @@ SUBROUTINE load_material ()
     OPEN(UNIT = 10, FILE =  Materials_dir//material, FORM='unformatted',IOSTAT = st)
     READ(10) rho_inv
     READ(10) c_E
+    READ(10) s_E
     READ(10) beta_s
     READ(10) e_piezo
     
