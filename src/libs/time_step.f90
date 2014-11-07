@@ -185,14 +185,14 @@ SUBROUTINE dot_source()
 	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
 	    iz = Nz/2
 !~ 	write(*,*) me, ix, iy, iz
- 		DO iz=1, Nz-2
+! 		DO iz=1, Nz-2
 		    Vz(UROLL3(ix, iy, iz)) = Vz(UROLL3(ix, iy, iz)) + &
 		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
 		    Vy(UROLL3(ix, iy, iz)) = Vy(UROLL3(ix, iy, iz)) + &
 		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
 		    Vx(UROLL3(ix, iy, iz)) = Vx(UROLL3(ix, iy, iz)) + &
 		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
- 	    END DO
+! 	    END DO
 	
 	    !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
 	END IF
