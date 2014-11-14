@@ -4,42 +4,11 @@ PROGRAM acousticwaves
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
+    USE Lib_FDTD_SAW
     IMPLICIT NONE
 
     INTERFACE
-
-        SUBROUTINE load_material()
-            USE Type_Kinds
-            USE Constants_Module
-            IMPLICIT NONE
-            CHARACTER(LEN = name_len) :: material
-            REAL(Double) :: rho_inv
-            REAL(Double), DIMENSION(:), POINTER :: c_E
-            REAL(Double), DIMENSION(:), POINTER :: beta_s
-            REAL(Double), DIMENSION(:), POINTER :: e_piezo
-        END SUBROUTINE load_material
-
-        SUBROUTINE ROLLPROC()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE ROLLPROC
-
-        SUBROUTINE load_PML()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE load_PML
-
-        SUBROUTINE load_D0()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE load_D0
-        
+      
         SUBROUTINE share_v()
 	        USE MPI
             USE Type_Kinds
@@ -55,27 +24,6 @@ PROGRAM acousticwaves
             USE Global_Vars
             IMPLICIT NONE
         END SUBROUTINE share_T
-
-        SUBROUTINE read_input_param()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE read_input_param
-
-        SUBROUTINE allocate_memory()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE allocate_memory
-
-        SUBROUTINE deallocate_memory()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE deallocate_memory
 
         SUBROUTINE open_vtk_file(outfile)
             USE Type_Kinds
@@ -124,31 +72,7 @@ PROGRAM acousticwaves
             USE Global_Vars
             IMPLICIT NONE 
         END SUBROUTINE xzplane
-        
-        SUBROUTINE Kinetic_Energy()
-            USE mpi
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE Kinetic_Energy
-        
-        SUBROUTINE Strain_Energy()
-            USE mpi
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE Strain_Energy
-        
-        SUBROUTINE Elec_Energy()
-            USE mpi
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE Elec_Energy
-        
+                
     END INTERFACE
 
     !Functions
@@ -158,6 +82,8 @@ PROGRAM acousticwaves
     
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
     CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
+    
+    CHARACTER(LEN = 5) :: Debug = 'True' 
 
     INTEGER :: st
 
@@ -187,7 +113,7 @@ PROGRAM acousticwaves
     CALL mpi_bcast(Nprocsy, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     IF (Nprocsx*Nprocsy .NE. ntasks) THEN
         IF (me==0) THEN
-            WRITE(*,*) "The requiered process is ", Nprocsx*Nprocsy
+            WRITE(*,*) "***Error: The requiered processes are ", Nprocsx*Nprocsy
         END IF
         CALL mpi_finalize(ierr)
         STOP
@@ -200,40 +126,27 @@ PROGRAM acousticwaves
     
     !PROCESS 0 READS MATERIAL CONSTANTS AND BROADCASTS THE INFORMATION
     IF (me==0) THEN
-        CALL load_material()    !ok
+        CALL load_material(Debug=Debug)    !ok
     END IF
     CALL mpi_bcast(rho_inv, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(c_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(s_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(beta_s, 9, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(e_piezo, 18, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    beta_s=0.0_dp; e_piezo=0.0_dp
     
     !SIZE OF MPI BUFFERS
     vbuffsizex=(3*Nz*Ny)
     vbuffsizey=(3*Nz*Nx)
     
-    !TWO DIMENSIONAL (x,y) PROCESS INDEX AND OFFSET
-    CALL ROLLPROC()
-    offsetx=procsx*(Nx-3)*deltax
-    offsety=procsy*(Ny-3)*deltay
-    !TWO DIMENSIONAL FIRST NEIGHBORS
-    nUP = INT(UROLLPROC(procsx, procsy+1))
-    nDOWN = INT(UROLLPROC(procsx, procsy-1))
-    nRIGHT = INT(UROLLPROC(procsx+1, procsy))
-    nLEFT = INT(UROLLPROC(procsx-1, procsy))
-    
-    !Testing ROLLPROC and UROLLPROC
-!     DO ix=0, ntasks
-!         IF (me==ix) THEN
-!             write(*,*) procsx, procsy, UROLLPROC(procsx, procsy), nUP, nDOWN,nRIGHT,nLEFT
-!         END IF
-!         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-!     END DO
-    
-    CALL load_PML() !w1, w2 ...ok
+    CALL SETUP_MPI_VARS(Debug=Debug)
+    CALL PML_weights() !w1, w2 ...ok
+!    CALL load_PML() !w1, w2 ...ok
     CALL load_D0() !w1, w2 ...ok
-    CALL write_volume_w1() !ok
-    CALL write_volume_D0() !ok
+    IF (Debug .EQ. 'True') THEN
+        CALL write_volume_w1() !ok
+        CALL write_volume_D0() !ok
+    ENDIF
     
 !     CALL CPU_TIME(TIME1) 
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -250,9 +163,9 @@ PROGRAM acousticwaves
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
         CALL T_half_step()
-        CALL Kinetic_Energy()
-        CALL Strain_Energy()
-        CALL Elec_Energy()
+        CALL Get_Total_Kinetic_Energy()
+        CALL Get_Total_Strain_Energy()
+        CALL Get_Total_Electric_Energy()
 !~         CALL free_boundary_T()
         IF (MOD(STEP, 100) .EQ. 0) THEN
             CALL xzplane()
@@ -274,7 +187,7 @@ PROGRAM acousticwaves
 !         END DO
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step, "  out of  ",Nstep
-            write(31,*) U_k_total/rho_inv, U_s_total, U_e_total/beta_s(1)*dt
+            write(31,*) U_k_total, U_s_total, U_e_total
         END IF
     END DO
     

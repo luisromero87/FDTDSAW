@@ -1,12 +1,11 @@
-REAL(Double) FUNCTION fomega(ix,m,smax,PMLwidth)
+REAL(Double) FUNCTION fomega(ix)
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
+    USE Lib_FDTD_SAW
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: ix
-    REAL(Double), INTENT(IN) :: m, smax
-    INTEGER, INTENT(IN) :: PMLwidth
     
     fomega = smax*((ix+1.0_dp)/(PMLwidth*1.0_dp))**m
 
@@ -20,15 +19,16 @@ PROGRAM weights
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
+    USE Lib_FDTD_SAW
     IMPLICIT NONE
 
     INTERFACE
-        SUBROUTINE read_input_param()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE read_input_param
+!        SUBROUTINE read_input_param()
+!            USE Type_Kinds
+!            USE Constants_Module
+!            USE Global_Vars
+!            IMPLICIT NONE
+!        END SUBROUTINE read_input_param
         
         SUBROUTINE ROLLPROC()
             USE Type_Kinds
@@ -59,11 +59,21 @@ PROGRAM weights
             USE Global_Vars
             IMPLICIT NONE
         END SUBROUTINE 
+        
+        REAL(Double) FUNCTION fomega(ix)
+            USE Type_Kinds
+            USE Constants_Module
+            USE Global_Vars
+            USE Lib_FDTD_SAW
+            IMPLICIT NONE
+
+            INTEGER, INTENT(IN) :: ix
+        END FUNCTION fomega
     END INTERFACE
 
     !Functions
     INTEGER(Long) :: UROLL3
-    REAL(Double) :: fomega
+!    REAL(Double) :: fomega
     
     !Variables
     
@@ -75,9 +85,8 @@ PROGRAM weights
 
     INTEGER :: axis, ix, iy, iz
     
-    INTEGER :: PMLwidth
     
-    REAL(Double) :: m, smax, omega
+    REAL(Double) :: omega
         
     ! Initialize MPI; get total number of tasks and ID of this task
     CALL mpi_init(ierr)
@@ -125,7 +134,7 @@ PROGRAM weights
     offsety=procsy*(Ny-3)*deltay
     
     DO ix=0,PMLwidth-1
-		omega=fomega(ix,m,smax,PMLwidth)
+		omega=fomega(ix)
 	    DO iz=0,Nz-1
 	    DO iy=0,Ny-1
 			!<- x
@@ -143,7 +152,7 @@ PROGRAM weights
     END DO
     
     DO iy=0,PMLwidth-1
-		omega=fomega(iy,m,smax,PMLwidth)
+		omega=fomega(iy)
 	    DO iz=0,Nz-1
 	    DO ix=0,Nx-1
 			!<- y
@@ -161,7 +170,7 @@ PROGRAM weights
     END DO
     
     DO iz=0,PMLwidth-1
-		omega=fomega(iz,m,smax,PMLwidth)
+		omega=fomega(iz)
 	    DO iy=0,Ny-1
 	    DO ix=0,Nx-1
 			!   z ->

@@ -44,6 +44,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/load_pml.o \
 	${OBJECTDIR}/libs/write_to_vtk.o \
 	${OBJECTDIR}/libs/time_step.o \
+	${OBJECTDIR}/libs/Lib_FDTD_SAW.o \
 	${OBJECTDIR}/fdtdsaw.o
 	
 COMMONOBJECTFILES= \
@@ -53,7 +54,8 @@ COMMONOBJECTFILES= \
 	${OBJECTDIR}/libs/read_input_param.o \
 	${OBJECTDIR}/libs/uroll3.o \
 	${OBJECTDIR}/libs/load_pml.o \
-	${OBJECTDIR}/libs/write_to_vtk.o 
+	${OBJECTDIR}/libs/write_to_vtk.o \
+	${OBJECTDIR}/libs/Lib_FDTD_SAW.o
 
 #BUILD MAIN
 .PHONY: FDTDSAW
@@ -158,6 +160,15 @@ ${OBJECTDIR}/libs/time_step.o: ${SRCLIBSDIR}/time_step.f90
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/time_step.o ${SRCLIBSDIR}/time_step.f90
 	
+.PHONY: Lib_FDTD_SAW
+time_step: ${OBJECTDIR}/libs/Lib_FDTD_SAW.o \
+                  type_kinds \
+                  constants_module \
+                  global_vars
+${OBJECTDIR}/libs/Lib_FDTD_SAW.o: ${SRCLIBSDIR}/Lib_FDTD_SAW.f90 
+	${MKDIR} -p ${OBJECTDIR}/libs
+	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/Lib_FDTD_SAW.o ${SRCLIBSDIR}/Lib_FDTD_SAW.f90
+	
 .PHONY: weights
 weights: ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights: ${OBJECTDIR}/weights.o ${COMMONOBJECTFILES}
@@ -169,7 +180,8 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/weights: ${OBJECTDIR}/weights.o ${COM
 ${OBJECTDIR}/weights.o: ${SRCDIR}/weights.f90 \
                         type_kinds \
                         constants_module \
-                        global_vars
+                        global_vars \
+                        Lib_FDTD_SAW
 	${MKDIR} -p ${OBJECTDIR}
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/weights.o ${SRCDIR}/weights.f90
 	

@@ -39,7 +39,7 @@ SUBROUTINE load_PML()
 
 END SUBROUTINE load_PML
 
-SUBROUTINE load_D0()
+SUBROUTINE load_D02()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
@@ -68,5 +68,5 @@ SUBROUTINE load_D0()
     
     CLOSE(12)
 
-END SUBROUTINE load_D0
+END SUBROUTINE load_D02
 

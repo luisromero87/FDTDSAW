@@ -162,9 +162,9 @@ SUBROUTINE free_boundary_v()
     iz = 1
     DO iy = 1, Ny - 2
         DO ix = 1, Nx - 2
-            Vz(UROLL3(ix, iy, iz - 1)) = Vz(UROLL3(ix, iy, iz))+(dz(iz)/c_E(12 + 3))*(&
-            c_E(12 + 1)/dx(ix) * (Vx(UROLL3(ix, iy, iz)) - Vx(UROLL3(ix - 1, iy, iz)))+&
-            c_E(12 + 2)/dy(iy) * (Vy(UROLL3(ix, iy, iz)) - Vy(UROLL3(ix, iy - 1, iz))))
+            Vz(UROLL3(ix, iy, iz - 1)) = Vz(UROLL3(ix, iy, iz))+(dz(iz)/c_E(3,3))*(&
+            c_E(3,1)/dx(ix) * (Vx(UROLL3(ix, iy, iz)) - Vx(UROLL3(ix - 1, iy, iz)))+&
+            c_E(3,2)/dy(iy) * (Vy(UROLL3(ix, iy, iz)) - Vy(UROLL3(ix, iy - 1, iz))))
         END DO
     END DO
     
@@ -292,20 +292,20 @@ SUBROUTINE T_half_step()
                 IF (w1(thiscell, x) .EQ. 1.0_dp .AND. w1(thiscell, y) .EQ. 1.0_dp .AND. w1(thiscell, z) .EQ. 1.0_dp) THEN
                 
                 T1(thiscell) = T1(thiscell) +&
-                w2(thiscell, x) * c_E(1)*(dVxdx)+&
-                w2(thiscell, y) * c_E(2)*(dVydy)+&
-                w2(thiscell, z) * c_E(3)*(dVzdz)
+                w2(thiscell, x) * c_E(1,1)*(dVxdx)+&
+                w2(thiscell, y) * c_E(1,2)*(dVydy)+&
+                w2(thiscell, z) * c_E(1,3)*(dVzdz)
 
 
                 T2(thiscell) = T2(thiscell) +&
-                w2(thiscell, x) * c_E(6 + 1)*(dVxdx)+&
-                w2(thiscell, y) * c_E(6 + 2)*(dVydy)+&
-                w2(thiscell, z) * c_E(6 + 3)*(dVzdz)
+                w2(thiscell, x) * c_E(2,1)*(dVxdx)+&
+                w2(thiscell, y) * c_E(2,2)*(dVydy)+&
+                w2(thiscell, z) * c_E(2,3)*(dVzdz)
 
                 T3(thiscell) = T3(thiscell) +&
-                w2(thiscell, x) * c_E(12 + 1)*(dVxdx)+&
-                w2(thiscell, y) * c_E(12 + 2)*(dVydy)+&
-                w2(thiscell, z) * c_E(12 + 3)*(dVzdz)
+                w2(thiscell, x) * c_E(3,1)*(dVxdx)+&
+                w2(thiscell, y) * c_E(3,2)*(dVydy)+&
+                w2(thiscell, z) * c_E(3,3)*(dVzdz)
                 
                 phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
                 
@@ -313,82 +313,82 @@ SUBROUTINE T_half_step()
                 dDy(thiscell)=D0y(thiscell)*phase
                 dDz(thiscell)=D0z(thiscell)*phase
 
-				dEx(thiscell)=(dDx(thiscell)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(10))*beta_s(1)
-				dEy(thiscell)=(dDy(thiscell)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(14))*beta_s(5)
-				dEz(thiscell)=(dDz(thiscell)-(dVydx/deltax + dVxdy/deltay)*e_piezo(18))*beta_s(9)
+				dEx(thiscell)=(dDx(thiscell)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3))*beta_s(1,1)
+				dEy(thiscell)=(dDy(thiscell)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5))*beta_s(2,2)
+				dEz(thiscell)=(dDz(thiscell)-(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6))*beta_s(3,3)
 				
                 T4(thiscell) = T4(thiscell) +&
-                w2(thiscell, y) * c_E(18 + 4)*dVzdy+&
-                w2(thiscell, z) * c_E(18 + 4)*dVydz+ &
-                dEx(thiscell)*e_piezo(10)*dt
+                w2(thiscell, y) * c_E(4,4)*dVzdy+&
+                w2(thiscell, z) * c_E(4,4)*dVydz+ &
+                dEx(thiscell)*e_piezo(1,4)*dt
 
                 T5(thiscell) = T5(thiscell) +&
-                w2(thiscell, x) * c_E(24 + 5)*dVzdx+&
-                w2(thiscell, z) * c_E(24 + 5)*dVxdz+ &
-                dEy(thiscell)*e_piezo(14)*dt
+                w2(thiscell, x) * c_E(5,5)*dVzdx+&
+                w2(thiscell, z) * c_E(5,5)*dVxdz+ &
+                dEy(thiscell)*e_piezo(2,5)*dt
 
                 T6(thiscell) = T6(thiscell) +&
-                w2(thiscell, x) * c_E(30 + 6)*dVydx+&
-                w2(thiscell, y) * c_E(30 + 6)*dVxdy+ &
-                dEz(thiscell)*e_piezo(18)*dt
+                w2(thiscell, x) * c_E(6,6)*dVydx+&
+                w2(thiscell, y) * c_E(6,6)*dVxdy+ &
+                dEz(thiscell)*e_piezo(3,6)*dt
                 
                 ELSE
                 
-                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(1)*(dVxdx)
-                T1_y(thiscell) = T1_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(2)*(dVydy)
-                T1_z(thiscell) = T1_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(3)*(dVzdz)
-                T1(thiscell) = T1_x(thiscell) + T1_y(thiscell) + T1_z(thiscell)
-
-
-                T2_x(thiscell) = T2_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(6 + 1)*(dVxdx)
-                T2_y(thiscell) = T2_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(6 + 2)*(dVydy)
-                T2_z(thiscell) = T2_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(6 + 3)*(dVzdz)
-                T2(thiscell) = T2_x(thiscell) + T2_y(thiscell) + T2_z(thiscell)
-
-                T3_x(thiscell) = T3_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(12 + 1)*(dVxdx)
-                T3_y(thiscell) = T3_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(12 + 2)*(dVydy)
-                T3_z(thiscell) = T3_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(12 + 3)*(dVzdz)
-                T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell)
-                
+!                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(1)*(dVxdx)
+!                T1_y(thiscell) = T1_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(2)*(dVydy)
+!                T1_z(thiscell) = T1_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(3)*(dVzdz)
+!                T1(thiscell) = T1_x(thiscell) + T1_y(thiscell) + T1_z(thiscell)
+!
+!
+!                T2_x(thiscell) = T2_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(6 + 1)*(dVxdx)
+!                T2_y(thiscell) = T2_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(6 + 2)*(dVydy)
+!                T2_z(thiscell) = T2_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(6 + 3)*(dVzdz)
+!                T2(thiscell) = T2_x(thiscell) + T2_y(thiscell) + T2_z(thiscell)
+!
+!                T3_x(thiscell) = T3_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(12 + 1)*(dVxdx)
+!                T3_y(thiscell) = T3_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(12 + 2)*(dVydy)
+!                T3_z(thiscell) = T3_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(12 + 3)*(dVzdz)
+!                T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell)
+!                
                 phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
-                
-                dDx(thiscell)=D0x(thiscell)*phase
-                dDy(thiscell)=D0y(thiscell)*phase
-                dDz(thiscell)=D0z(thiscell)*phase
-
-				dEx(thiscell)=(dDx(thiscell)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(10))*beta_s(1)
-				dEy(thiscell)=(dDy(thiscell)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(14))*beta_s(5)
-				dEz(thiscell)=(dDz(thiscell)-(dVydx/deltax + dVxdy/deltay)*e_piezo(18))*beta_s(9)
-				
-                T4_y(thiscell) = T4_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(18 + 4)*dVzdy
-                T4_z(thiscell) = T4_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(18 + 4)*dVydz
-                T4(thiscell) = T4_y(thiscell) + T4_z(thiscell) + &
-                dEx(thiscell)*e_piezo(10)*dt
-
-                T5_x(thiscell) = T5_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(24 + 5)*dVzdx
-                T5_z(thiscell) = T5_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(24 + 5)*dVxdz
-                T5(thiscell) = T5_x(thiscell) + T5_z(thiscell) + &
-                dEy(thiscell)*e_piezo(14)*dt
-
-                T6_x(thiscell) = T6_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(30 + 6)*dVydx
-                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(30 + 6)*dVxdy
-                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell) + &
-                dEz(thiscell)*e_piezo(18)*dt
+!                
+!                dDx(thiscell)=D0x(thiscell)*phase
+!                dDy(thiscell)=D0y(thiscell)*phase
+!                dDz(thiscell)=D0z(thiscell)*phase
+!
+!				dEx(thiscell)=(dDx(thiscell)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(10))*beta_s(1)
+!				dEy(thiscell)=(dDy(thiscell)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(14))*beta_s(5)
+!				dEz(thiscell)=(dDz(thiscell)-(dVydx/deltax + dVxdy/deltay)*e_piezo(18))*beta_s(9)
+!				
+!                T4_y(thiscell) = T4_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(18 + 4)*dVzdy
+!                T4_z(thiscell) = T4_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(18 + 4)*dVydz
+!                T4(thiscell) = T4_y(thiscell) + T4_z(thiscell) + &
+!                dEx(thiscell)*e_piezo(10)*dt
+!
+!                T5_x(thiscell) = T5_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(24 + 5)*dVzdx
+!                T5_z(thiscell) = T5_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(24 + 5)*dVxdz
+!                T5(thiscell) = T5_x(thiscell) + T5_z(thiscell) + &
+!                dEy(thiscell)*e_piezo(14)*dt
+!
+!                T6_x(thiscell) = T6_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(30 + 6)*dVydx
+!                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(30 + 6)*dVxdy
+!                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell) + &
+!                dEz(thiscell)*e_piezo(18)*dt
                 END IF
                 
                 Disx(thiscell)=Disx(thiscell)+ dDx(thiscell)
@@ -552,99 +552,6 @@ SUBROUTINE share_T()
 	    
 END SUBROUTINE share_T
 
-
-
-
-
-SUBROUTINE Kinetic_Energy()
-	USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
-	IMPLICIT NONE
-	INTEGER(Long) :: UROLL3
-	INTEGER(Short) UROLLPROC
-	INTEGER :: ix, iy, iz, nextprocid
-    INTEGER(Long) :: thiscell
-    
-    U_k=0;
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
-                thiscell=UROLL3(ix, iy, iz)
-                U_k=U_k+Vx(thiscell)**2+Vy(thiscell)**2+Vz(thiscell)**2
-            END DO
-        END DO
-    END DO
-    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    CALL MPI_REDUCE(U_k, U_k_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-    
-END SUBROUTINE Kinetic_Energy
-
-
-SUBROUTINE Strain_Energy()
-	USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
-	IMPLICIT NONE
-	INTEGER(Long) :: UROLL3
-	INTEGER(Short) UROLLPROC
-	INTEGER :: ix, iy, iz, nextprocid
-    INTEGER(Long) :: thiscell
-    REAL(Double) :: aux
-    
-    U_s=0;
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
-                thiscell=UROLL3(ix, iy, iz)
-                S1 = s_E(1)*T1(thiscell)+s_E(2)*T2(thiscell)+s_E(2)*T3(thiscell)
-                S2 = s_E(1+6)*T1(thiscell)+s_E(2+6)*T2(thiscell)+s_E(2+6)*T3(thiscell)
-                S3 = s_E(1+12)*T1(thiscell)+s_E(2+12)*T2(thiscell)+s_E(2+12)*T3(thiscell)
-                S4 = s_E(4+18)*T4(thiscell)
-                S5 = s_E(5+24)*T5(thiscell)
-                S6 = s_E(6+30)*T6(thiscell)
-                aux = S1*(S1*c_E(1)+S2*c_E(2)+S3*c_E(3)) +&
-                      S2*(S1*c_E(1+6)+S2*c_E(2+6)+S3*c_E(3+6)) +&
-                      S3*(S1*c_E(1+12)+S2*c_E(2+12)+S3*c_E(3+12)) +&
-                      S4**2*c_E(4+18) +&
-                      S5**2*c_E(5+24) +&
-                      S6**2*c_E(6+30)
-                U_s=U_s+aux
-            END DO
-        END DO
-    END DO
-    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    CALL MPI_REDUCE(U_s, U_s_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-    
-END SUBROUTINE Strain_Energy
-
-SUBROUTINE Elec_Energy()
-	USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
-	IMPLICIT NONE
-	INTEGER(Long) :: UROLL3
-	INTEGER(Short) UROLLPROC
-	INTEGER :: ix, iy, iz, nextprocid
-    INTEGER(Long) :: thiscell
-    
-    U_e=0;
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
-                thiscell=UROLL3(ix, iy, iz)
-                U_e=U_e+Ex(thiscell)*Ex(thiscell)+Ey(thiscell)*Ey(thiscell)+&
-                Ez(thiscell)*Ez(thiscell)
-            END DO
-        END DO
-    END DO
-    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    CALL MPI_REDUCE(U_e, U_e_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-    
-END SUBROUTINE Elec_Energy
 
 
 

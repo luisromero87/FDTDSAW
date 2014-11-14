@@ -26,7 +26,6 @@ MODULE constants_module
     INTEGER, PARAMETER, PUBLIC :: Nprobe = 9*9*9
     
     CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: PLM_archive='configfiles/PLM'
-    CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: sim_config='configfiles/sim.config'
     CHARACTER(LEN=name_len), PARAMETER, PUBLIC :: idt_file='configfiles/idt2.txt'
     CHARACTER(LEN=10), PARAMETER, PUBLIC :: Materials_dir='Materials/'
     

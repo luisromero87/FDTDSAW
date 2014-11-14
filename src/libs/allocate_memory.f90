@@ -5,16 +5,16 @@
 ! Created on April 12, 2014, 9:35 PM
 !
 
-SUBROUTINE allocate_memory()
+SUBROUTINE allocate_memory2()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
     
-    ALLOCATE(c_E(1:36))
-    ALLOCATE(s_E(1:36))
-    ALLOCATE(beta_s(1:9))
-    ALLOCATE(e_piezo(1:18))
+!    ALLOCATE(c_E(1:36))
+!    ALLOCATE(s_E(1:36))
+!    ALLOCATE(beta_s(1:9))
+!    ALLOCATE(e_piezo(1:18))
     
     ALLOCATE(dx(0:Nx - 1))
     ALLOCATE(dy(0:Ny - 1))
@@ -167,9 +167,9 @@ SUBROUTINE allocate_memory()
     D0z = 0.0_dp
 
 
-END SUBROUTINE allocate_memory
+END SUBROUTINE allocate_memory2
 
-SUBROUTINE deallocate_memory()
+SUBROUTINE deallocate_memory2()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
@@ -243,4 +243,4 @@ SUBROUTINE deallocate_memory()
     DEALLOCATE(w1)
     DEALLOCATE(w2)
 
-END SUBROUTINE deallocate_memory
+END SUBROUTINE deallocate_memory2

@@ -5,7 +5,7 @@
 ! Created on April 12, 2014, 9:35 PM
 !
 
-SUBROUTINE load_material ()
+SUBROUTINE load_material2 ()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
@@ -24,6 +24,13 @@ SUBROUTINE load_material ()
 !~     write (*,*) e_piezo(10),e_piezo(14),e_piezo(12+6)
     
     CLOSE(10)
+!    write(*,*) rho_inv
+!    write(*,*) c_E
+!    write(*,*) s_E
+!    write(*,*) beta_s
+    write(*,*) e_piezo(1,:)
+    write(*,*) e_piezo(2,:)
+    write(*,*) e_piezo(3,:)
     
-END SUBROUTINE load_material
+END SUBROUTINE load_material2
 
