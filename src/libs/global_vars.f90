@@ -66,7 +66,7 @@ REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dy
 REAL(Double), DIMENSION(:), POINTER, PUBLIC :: dz
 
 !Material properties
-REAL(Double), PUBLIC :: rho_inv = 0.0_dp
+REAL(Double), PUBLIC :: rho, rho_inv = 0.0_dp
 REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: c_E, s_E
 REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: beta_s
 REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: e_piezo

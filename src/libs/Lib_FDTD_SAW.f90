@@ -168,38 +168,38 @@ SUBROUTINE allocate_memory()
     ALLOCATE(Vx(0:NCeldas - 1), Vy(0:NCeldas - 1), Vz(0:NCeldas - 1))
     ALLOCATE(T1(0:NCeldas - 1), T2(0:NCeldas - 1), T3(0:NCeldas - 1), T4(0:NCeldas - 1), T5(0:NCeldas - 1), T6(0:NCeldas - 1))
     
-!    ALLOCATE(Vx_x(0:NCeldas - 1))
-!    ALLOCATE(Vx_y(0:NCeldas - 1))
-!    ALLOCATE(Vx_z(0:NCeldas - 1))
+    ALLOCATE(Vx_x(0:NCeldas - 1))
+    ALLOCATE(Vx_y(0:NCeldas - 1))
+    ALLOCATE(Vx_z(0:NCeldas - 1))
 
-!    ALLOCATE(Vy_x(0:NCeldas - 1))
-!    ALLOCATE(Vy_y(0:NCeldas - 1))
-!    ALLOCATE(Vy_z(0:NCeldas - 1))
+    ALLOCATE(Vy_x(0:NCeldas - 1))
+    ALLOCATE(Vy_y(0:NCeldas - 1))
+    ALLOCATE(Vy_z(0:NCeldas - 1))
 
-!    ALLOCATE(Vz_x(0:NCeldas - 1))
-!    ALLOCATE(Vz_y(0:NCeldas - 1))
-!    ALLOCATE(Vz_z(0:NCeldas - 1))
+    ALLOCATE(Vz_x(0:NCeldas - 1))
+    ALLOCATE(Vz_y(0:NCeldas - 1))
+    ALLOCATE(Vz_z(0:NCeldas - 1))
 
-!    ALLOCATE(T1_x(0:NCeldas - 1))
-!    ALLOCATE(T1_y(0:NCeldas - 1))
-!    ALLOCATE(T1_z(0:NCeldas - 1))
+    ALLOCATE(T1_x(0:NCeldas - 1))
+    ALLOCATE(T1_y(0:NCeldas - 1))
+    ALLOCATE(T1_z(0:NCeldas - 1))
 
-!    ALLOCATE(T2_x(0:NCeldas - 1))
-!    ALLOCATE(T2_y(0:NCeldas - 1))
-!    ALLOCATE(T2_z(0:NCeldas - 1))
+    ALLOCATE(T2_x(0:NCeldas - 1))
+    ALLOCATE(T2_y(0:NCeldas - 1))
+    ALLOCATE(T2_z(0:NCeldas - 1))
 
-!    ALLOCATE(T3_x(0:NCeldas - 1))
-!    ALLOCATE(T3_y(0:NCeldas - 1))
-!    ALLOCATE(T3_z(0:NCeldas - 1))
+    ALLOCATE(T3_x(0:NCeldas - 1))
+    ALLOCATE(T3_y(0:NCeldas - 1))
+    ALLOCATE(T3_z(0:NCeldas - 1))
 
-!    ALLOCATE(T4_y(0:NCeldas - 1))
-!    ALLOCATE(T4_z(0:NCeldas - 1))
+    ALLOCATE(T4_y(0:NCeldas - 1))
+    ALLOCATE(T4_z(0:NCeldas - 1))
 
-!    ALLOCATE(T5_x(0:NCeldas - 1))
-!    ALLOCATE(T5_z(0:NCeldas - 1))
+    ALLOCATE(T5_x(0:NCeldas - 1))
+    ALLOCATE(T5_z(0:NCeldas - 1))
 
-!    ALLOCATE(T6_x(0:NCeldas - 1))
-!    ALLOCATE(T6_y(0:NCeldas - 1))
+    ALLOCATE(T6_x(0:NCeldas - 1))
+    ALLOCATE(T6_y(0:NCeldas - 1))
 
     ALLOCATE(dEx(0:NCeldas - 1), dEy(0:NCeldas - 1), dEz(0:NCeldas - 1))
     ALLOCATE(Ex(0:NCeldas - 1), Ey(0:NCeldas - 1), Ez(0:NCeldas - 1))
@@ -228,38 +228,38 @@ SUBROUTINE allocate_memory()
     Vx = 0.0_dp; Vy = 0.0_dp; Vz = 0.0_dp
     T1 = 0.0_dp; T2 = 0.0_dp; T3 = 0.0_dp; T4 = 0.0_dp; T5 = 0.0_dp; T6 = 0.0_dp
     
-!    Vx_x = 0.0_dp
-!    Vx_y = 0.0_dp
-!    Vx_z = 0.0_dp
+    Vx_x = 0.0_dp
+    Vx_y = 0.0_dp
+    Vx_z = 0.0_dp
 
-!    Vy_x = 0.0_dp
-!    Vy_y = 0.0_dp
-!    Vy_z = 0.0_dp
+    Vy_x = 0.0_dp
+    Vy_y = 0.0_dp
+    Vy_z = 0.0_dp
 
-!    Vz_x = 0.0_dp
-!    Vz_y = 0.0_dp
-!    Vz_z = 0.0_dp
+    Vz_x = 0.0_dp
+    Vz_y = 0.0_dp
+    Vz_z = 0.0_dp
 
-!    T1_x = 0.0_dp
-!    T1_y = 0.0_dp
-!    T1_z = 0.0_dp
+    T1_x = 0.0_dp
+    T1_y = 0.0_dp
+    T1_z = 0.0_dp
 
-!    T2_x = 0.0_dp
-!    T2_y = 0.0_dp
-!    T2_z = 0.0_dp
+    T2_x = 0.0_dp
+    T2_y = 0.0_dp
+    T2_z = 0.0_dp
 
-!    T3_x = 0.0_dp
-!    T3_y = 0.0_dp
-!    T3_z = 0.0_dp
+    T3_x = 0.0_dp
+    T3_y = 0.0_dp
+    T3_z = 0.0_dp
 
-!    T4_y = 0.0_dp
-!    T4_z = 0.0_dp
+    T4_y = 0.0_dp
+    T4_z = 0.0_dp
 
-!    T5_x = 0.0_dp
-!    T5_z = 0.0_dp
+    T5_x = 0.0_dp
+    T5_z = 0.0_dp
 
-!    T6_x = 0.0_dp
-!    T6_y = 0.0_dp
+    T6_x = 0.0_dp
+    T6_y = 0.0_dp
 
     dEx = 0.0_dp; dEy = 0.0_dp; dEz = 0.0_dp
     dDx = 0.0_dp; dDy = 0.0_dp; dDz = 0.0_dp
@@ -356,6 +356,7 @@ SUBROUTINE load_material(Debug)
     READ(10) e_piezo
     
     CLOSE(10)
+    
     
     IF (PRESENT(Debug)) THEN
 !    write(*,*) Debug
@@ -542,7 +543,7 @@ SUBROUTINE Get_Total_Kinetic_Energy()
     END DO
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(U_k, U_k_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-    IF (me .EQ. 0) U_k_total=0.5*U_k_total/rho_inv
+    IF (me .EQ. 0) U_k_total=0.5*U_k_total*rho
     
 ENDSUBROUTINE Get_Total_Kinetic_Energy
 
@@ -597,7 +598,7 @@ SUBROUTINE Get_Total_Electric_Energy()
     END DO
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(U_e, U_e_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-!    IF (me .EQ. 0) U_e_total = 0.5*U_e_total/beta_s(1,1)*dt**2
+    IF (me .EQ. 0) U_e_total = 0.5*U_e_total/beta_s(1,1)*dt**2
     
 ENDSUBROUTINE Get_Total_Electric_Energy
 

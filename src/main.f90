@@ -133,7 +133,12 @@ PROGRAM acousticwaves
     CALL mpi_bcast(s_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(beta_s, 9, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(e_piezo, 18, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-    beta_s=0.0_dp; e_piezo=0.0_dp
+    CALL mpi_bcast(PMLwidth, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(smax, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(M, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    rho=1.0_dp/rho_inv
+!    beta_s=0.0_dp; e_piezo=0.0_dp
     
     !SIZE OF MPI BUFFERS
     vbuffsizex=(3*Nz*Ny)
@@ -141,7 +146,6 @@ PROGRAM acousticwaves
     
     CALL SETUP_MPI_VARS(Debug=Debug)
     CALL PML_weights() !w1, w2 ...ok
-!    CALL load_PML() !w1, w2 ...ok
     CALL load_D0() !w1, w2 ...ok
     IF (Debug .EQ. 'True') THEN
         CALL write_volume_w1() !ok

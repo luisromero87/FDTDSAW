@@ -102,8 +102,18 @@ f.write(struct.pack('i',rlc))
 c_E.tofile(f)
 f.write(struct.pack('i',rlc))
 
-# Compliance at constant E
-s_E=linalg.inv(c_E)
+# Stiffness at constant E
+s_E=zeros((6,6),dtype='float64')
+
+s_E[0,0] = 5.3e-12
+s_E[1,1] = 5.14e-12
+s_E[2,2] = 8.33e-12
+s_E[0,1] = s_E[1,0] = -1.98e-12
+s_E[0,2] = s_E[2,0] = -1.2e-12
+s_E[1,2] = s_E[2,1] = -1.25e-12
+s_E[3,3] = 15.4e-12
+s_E[4,4] = 15.2e-12
+s_E[5,5] = 13.2e-12
 
 rlc=8*6*6
 
@@ -115,12 +125,12 @@ f.write(struct.pack('i',rlc))
 eps_s=zeros((3,3),dtype='float64')
 beta_s=zeros((3,3),dtype='float64')
 
-eps_s[0,0]=34.2e-11/38*222*0
-eps_s[1,1]=34.2e-11/38*227*0
-eps_s[2,2]=34.2e-11/38*32*0
+eps_s[0,0]=222
+eps_s[1,1]=227
+eps_s[2,2]=32
+eps_s=eps_s*8.8541878176e-12
 
-#beta_s=linalg.inv(eps_s)
-beta_s=eps_s
+beta_s=linalg.inv(eps_s)
 
 rlc=8*3*3
 
@@ -129,10 +139,14 @@ beta_s.tofile(f)
 f.write(struct.pack('i',rlc))
 
 
-#Dielectric constant
+#Piezoelectric stress constants
 e_piezo=zeros((3,6),dtype='float64')
 
-e_piezo[0,3]=e_piezo[1,4]=e_piezo[2,5]=0.99*0
+e_piezo[0,4]=2.8
+e_piezo[1,3]=3.4
+e_piezo[2,0]=-0.4
+e_piezo[2,1]=-0.3
+e_piezo[2,2]=4.3
 
 rlc=8*3*6
 
@@ -142,8 +156,6 @@ f.write(struct.pack('i',rlc))
 
 f.close()
 
-s=zeros((6,6))
-d=zeros((3,6))
 
 #--------------------------
 #       Rutile            |
