@@ -24,22 +24,22 @@ SUBROUTINE v_half_step()
 		thiscell=UROLL3(ix, iy, iz)
 		iz=Nz-2
 		anothercell=UROLL3(ix, iy, iz)
-		T1(thiscell)=T1(anothercell)
-		T2(thiscell)=T2(anothercell)
-		T3(thiscell)=T3(anothercell)
-		T4(thiscell)=T4(anothercell)
-		T5(thiscell)=T5(anothercell)
-		T6(thiscell)=T6(anothercell)
+		T1(ix, iy, 0)=T1(ix, iy, Nz-2)
+		T2(ix, iy, 0)=T2(ix, iy, Nz-2)
+		T3(ix, iy, 0)=T3(ix, iy, Nz-2)
+		T4(ix, iy, 0)=T4(ix, iy, Nz-2)
+		T5(ix, iy, 0)=T5(ix, iy, Nz-2)
+		T6(ix, iy, 0)=T6(ix, iy, Nz-2)
 		iz=Nz-1
 		thiscell=UROLL3(ix, iy, iz)
 		iz=1
 		anothercell=UROLL3(ix, iy, iz)
-		T1(thiscell)=T1(anothercell)
-		T2(thiscell)=T2(anothercell)
-		T3(thiscell)=T3(anothercell)
-		T4(thiscell)=T4(anothercell)
-		T5(thiscell)=T5(anothercell)
-		T6(thiscell)=T6(anothercell)
+		T1(ix, iy, Nz-1)=T1(ix, iy, 1)
+		T2(ix, iy, Nz-1)=T2(ix, iy, 1)
+		T3(ix, iy, Nz-1)=T3(ix, iy, 1)
+		T4(ix, iy, Nz-1)=T4(ix, iy, 1)
+		T5(ix, iy, Nz-1)=T5(ix, iy, 1)
+		T6(ix, iy, Nz-1)=T6(ix, iy, 1)
     END DO
     END DO
         
@@ -47,35 +47,35 @@ SUBROUTINE v_half_step()
     
     DO iz=0, Nz-1
     DO iy=0, Ny-1
-        T1(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)
-        T2(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)
-        T3(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)
-        T4(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(3*Nz*Ny+iz*Ny+iy)
-        T5(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(4*Nz*Ny+iz*Ny+iy)
-        T6(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(5*Nz*Ny+iz*Ny+iy)
-        T1(UROLL3(0_li,iy,iz))= recvbuff_LEFT(0*Nz*Ny+iz*Ny+iy)
-        T2(UROLL3(0_li,iy,iz))= recvbuff_LEFT(1*Nz*Ny+iz*Ny+iy)
-        T3(UROLL3(0_li,iy,iz))= recvbuff_LEFT(2*Nz*Ny+iz*Ny+iy)
-        T4(UROLL3(0_li,iy,iz))= recvbuff_LEFT(3*Nz*Ny+iz*Ny+iy)
-        T5(UROLL3(0_li,iy,iz))= recvbuff_LEFT(4*Nz*Ny+iz*Ny+iy)
-        T6(UROLL3(0_li,iy,iz))= recvbuff_LEFT(5*Nz*Ny+iz*Ny+iy)
+        T1(Nx-1,iy,iz)=recvbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)
+        T2(Nx-1,iy,iz)=recvbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)
+        T3(Nx-1,iy,iz)=recvbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)
+        T4(Nx-1,iy,iz)=recvbuff_RIGHT(3*Nz*Ny+iz*Ny+iy)
+        T5(Nx-1,iy,iz)=recvbuff_RIGHT(4*Nz*Ny+iz*Ny+iy)
+        T6(Nx-1,iy,iz)=recvbuff_RIGHT(5*Nz*Ny+iz*Ny+iy)
+        T1(0_li,iy,iz)= recvbuff_LEFT(0*Nz*Ny+iz*Ny+iy)
+        T2(0_li,iy,iz)= recvbuff_LEFT(1*Nz*Ny+iz*Ny+iy)
+        T3(0_li,iy,iz)= recvbuff_LEFT(2*Nz*Ny+iz*Ny+iy)
+        T4(0_li,iy,iz)= recvbuff_LEFT(3*Nz*Ny+iz*Ny+iy)
+        T5(0_li,iy,iz)= recvbuff_LEFT(4*Nz*Ny+iz*Ny+iy)
+        T6(0_li,iy,iz)= recvbuff_LEFT(5*Nz*Ny+iz*Ny+iy)
     END DO
     END DO
     
     DO iz=0, Nz-1
     DO ix=0, Nx-1
-        T1(UROLL3(ix,Ny-1,iz))=recvbuff_UP(0*Nz*Nx+iz*Nx+ix)
-        T2(UROLL3(ix,Ny-1,iz))=recvbuff_UP(1*Nz*Nx+iz*Nx+ix)
-        T3(UROLL3(ix,Ny-1,iz))=recvbuff_UP(2*Nz*Nx+iz*Nx+ix)
-        T4(UROLL3(ix,Ny-1,iz))=recvbuff_UP(3*Nz*Nx+iz*Nx+ix)
-        T5(UROLL3(ix,Ny-1,iz))=recvbuff_UP(4*Nz*Nx+iz*Nx+ix)
-        T6(UROLL3(ix,Ny-1,iz))=recvbuff_UP(5*Nz*Nx+iz*Nx+ix)
-        T1(UROLL3(ix,0_li,iz))= recvbuff_DOWN(0*Nz*Nx+iz*Nx+ix)
-        T2(UROLL3(ix,0_li,iz))= recvbuff_DOWN(1*Nz*Nx+iz*Nx+ix)
-        T3(UROLL3(ix,0_li,iz))= recvbuff_DOWN(2*Nz*Nx+iz*Nx+ix)
-        T4(UROLL3(ix,0_li,iz))= recvbuff_DOWN(3*Nz*Nx+iz*Nx+ix)
-        T5(UROLL3(ix,0_li,iz))= recvbuff_DOWN(4*Nz*Nx+iz*Nx+ix)
-        T6(UROLL3(ix,0_li,iz))= recvbuff_DOWN(5*Nz*Nx+iz*Nx+ix)
+        T1(ix,Ny-1,iz)=recvbuff_UP(0*Nz*Nx+iz*Nx+ix)
+        T2(ix,Ny-1,iz)=recvbuff_UP(1*Nz*Nx+iz*Nx+ix)
+        T3(ix,Ny-1,iz)=recvbuff_UP(2*Nz*Nx+iz*Nx+ix)
+        T4(ix,Ny-1,iz)=recvbuff_UP(3*Nz*Nx+iz*Nx+ix)
+        T5(ix,Ny-1,iz)=recvbuff_UP(4*Nz*Nx+iz*Nx+ix)
+        T6(ix,Ny-1,iz)=recvbuff_UP(5*Nz*Nx+iz*Nx+ix)
+        T1(ix,0_li,iz)= recvbuff_DOWN(0*Nz*Nx+iz*Nx+ix)
+        T2(ix,0_li,iz)= recvbuff_DOWN(1*Nz*Nx+iz*Nx+ix)
+        T3(ix,0_li,iz)= recvbuff_DOWN(2*Nz*Nx+iz*Nx+ix)
+        T4(ix,0_li,iz)= recvbuff_DOWN(3*Nz*Nx+iz*Nx+ix)
+        T5(ix,0_li,iz)= recvbuff_DOWN(4*Nz*Nx+iz*Nx+ix)
+        T6(ix,0_li,iz)= recvbuff_DOWN(5*Nz*Nx+iz*Nx+ix)
     END DO
     END DO
     
@@ -83,61 +83,61 @@ SUBROUTINE v_half_step()
         DO iy = 1, Ny - 2
             DO ix = 1, Nx - 2
                 thiscell=UROLL3(ix, iy, iz)
-                IF (w1(thiscell, x) .EQ. 1.0_dp .AND. w1(thiscell, y) .EQ. 1.0_dp .AND. w1(thiscell, z) .EQ. 1.0_dp) THEN
+                IF (w1(ix, iy, iz, x) .EQ. 1.0_dp .AND. w1(ix, iy, iz, y) .EQ. 1.0_dp .AND. w1(ix, iy, iz, z) .EQ. 1.0_dp) THEN
                 
-!~                 w1total=(w1(thiscell, x)+w1(thiscell, y)+w1(thiscell, z))/3
+!~                 w1total=(w1(ix, iy, iz, x)+w1(ix, iy, iz, y)+w1(ix, iy, iz, z))/3
                 
-!~                 Vx(thiscell) = Vx(thiscell) * w1total + rho_inv *(&
-                Vx(thiscell) = Vx(thiscell) + rho_inv *(&
-                w2(thiscell, x) * (T1(UROLL3(ix + 1, iy, iz)) - T1(thiscell))+&
-                w2(thiscell, y) * (T6(thiscell) - T6(UROLL3(ix, iy - 1, iz)))+&
-                w2(thiscell, z) * (T5(thiscell) - T5(UROLL3(ix, iy, iz - 1))))
+!~                 Vx(ix, iy, iz) = Vx(ix, iy, iz) * w1total + rho_inv *(&
+                Vx(ix,iy,iz) = Vx(ix,iy,iz) + rho_inv *(&
+                w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))+&
+                w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))+&
+                w2(ix,iy,iz,z) * (T5(ix,iy,iz) - T5(ix,iy,iz - 1)))
 
-                Vy(thiscell) = Vy(thiscell) + rho_inv * (&
-                w2(thiscell, x) * (T6(thiscell) - T6(UROLL3(ix - 1, iy, iz)))+&
-                w2(thiscell, y) * (T2(UROLL3(ix, iy + 1, iz)) - T2(thiscell))+&
-                w2(thiscell, z) * (T4(thiscell) - T4(UROLL3(ix, iy, iz - 1))))
+                Vy(ix,iy,iz) = Vy(ix,iy,iz) + rho_inv * (&
+                w2(ix,iy,iz,x) * (T6(ix,iy,iz) - T6(ix - 1,iy,iz))+&
+                w2(ix,iy,iz,y) * (T2(ix,iy + 1,iz) - T2(ix,iy,iz))+&
+                w2(ix,iy,iz,z) * (T4(ix,iy,iz) - T4(ix,iy,iz - 1)))
 
-                Vz(thiscell) = Vz(thiscell) + rho_inv * (&
-                w2(thiscell, x) * (T5(thiscell) - T5(UROLL3(ix - 1, iy, iz)))+&
-                w2(thiscell, y) * (T4(thiscell) - T4(UROLL3(ix, iy - 1, iz)))+&
-                w2(thiscell, z) * (T3(UROLL3(ix, iy, iz + 1)) - T3(thiscell)))
+                Vz(ix,iy,iz) = Vz(ix,iy,iz) + rho_inv * (&
+                w2(ix,iy,iz,x) * (T5(ix,iy,iz) - T5(ix - 1,iy,iz))+&
+                w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))+&
+                w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz)))
                 
                 ELSE
-                Vx_x(thiscell) = Vx_x(thiscell) * w1(thiscell, x) + &
-                rho_inv * w2(thiscell, x) * (T1(UROLL3(ix + 1, iy, iz)) - T1(thiscell))
+                Vx_x(ix,iy,iz) = Vx_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))
 
-                Vx_y(thiscell) = Vx_y(thiscell) * w1(thiscell, y) + &
-                rho_inv * w2(thiscell, y) * (T6(thiscell) - T6(UROLL3(ix, iy - 1, iz)))
+                Vx_y(ix,iy,iz) = Vx_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))
 
-                Vx_z(thiscell) = Vx_z(thiscell) * w1(thiscell, z) + &
-                rho_inv * w2(thiscell, z) * (T5(thiscell) - T5(UROLL3(ix, iy, iz - 1)))
+                Vx_z(ix,iy,iz) = Vx_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T5(ix,iy,iz) - T5(ix,iy,iz - 1))
 
-                Vx(thiscell) = Vx_x(thiscell) + Vx_y(thiscell) + Vx_z(thiscell)
-
-
-                Vy_x(thiscell) = Vy_x(thiscell) * w1(thiscell, x) + &
-                rho_inv * w2(thiscell, x) * (T6(thiscell) - T6(UROLL3(ix - 1, iy, iz)))
-
-                Vy_y(thiscell) = Vy_y(thiscell) * w1(thiscell, y) + &
-                rho_inv * w2(thiscell, y) * (T2(UROLL3(ix, iy + 1, iz)) - T2(thiscell))
-
-                Vy_z(thiscell) = Vy_z(thiscell) * w1(thiscell, z) + &
-                rho_inv * w2(thiscell, z) * (T4(thiscell) - T4(UROLL3(ix, iy, iz - 1)))
-
-                Vy(thiscell) = Vy_x(thiscell) + Vy_y(thiscell) + Vy_z(thiscell)
+                Vx(ix,iy,iz) = Vx_x(ix,iy,iz) + Vx_y(ix,iy,iz) + Vx_z(ix,iy,iz)
 
 
-                Vz_x(thiscell) = Vz_x(thiscell) * w1(thiscell, x) + &
-                rho_inv * w2(thiscell, x) * (T5(thiscell) - T5(UROLL3(ix - 1, iy, iz)))
+                Vy_x(ix,iy,iz) = Vy_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T6(ix,iy,iz) - T6(ix - 1,iy,iz))
 
-                Vz_y(thiscell) = Vz_y(thiscell) * w1(thiscell, y) + &
-                rho_inv * w2(thiscell, y) * (T4(thiscell) - T4(UROLL3(ix, iy - 1, iz)))
+                Vy_y(ix,iy,iz) = Vy_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T2(ix,iy + 1,iz) - T2(ix,iy,iz))
 
-                Vz_z(thiscell) = Vz_z(thiscell) * w1(thiscell, z) + &
-                rho_inv * w2(thiscell, z) * (T3(UROLL3(ix, iy, iz + 1)) - T3(thiscell))
+                Vy_z(ix,iy,iz) = Vy_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T4(ix,iy,iz) - T4(ix,iy,iz - 1))
 
-                Vz(thiscell) = Vz_x(thiscell) + Vz_y(thiscell) + Vz_z(thiscell)
+                Vy(ix,iy,iz) = Vy_x(ix,iy,iz) + Vy_y(ix,iy,iz) + Vy_z(ix,iy,iz)
+
+
+                Vz_x(ix,iy,iz) = Vz_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T5(ix,iy,iz) - T5(ix - 1,iy,iz))
+
+                Vz_y(ix,iy,iz) = Vz_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))
+
+                Vz_z(ix,iy,iz) = Vz_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz))
+
+                Vz(ix,iy,iz) = Vz_x(ix,iy,iz) + Vz_y(ix,iy,iz) + Vz_z(ix,iy,iz)
                 END IF
 
             END DO
@@ -162,9 +162,9 @@ SUBROUTINE free_boundary_v()
     iz = 1
     DO iy = 1, Ny - 2
         DO ix = 1, Nx - 2
-            Vz(UROLL3(ix, iy, iz - 1)) = Vz(UROLL3(ix, iy, iz))+(dz(iz)/c_E(3,3))*(&
-            c_E(3,1)/dx(ix) * (Vx(UROLL3(ix, iy, iz)) - Vx(UROLL3(ix - 1, iy, iz)))+&
-            c_E(3,2)/dy(iy) * (Vy(UROLL3(ix, iy, iz)) - Vy(UROLL3(ix, iy - 1, iz))))
+            Vz(ix, iy, iz - 1) = Vz(ix, iy, iz)+(dz(iz)/c_E(3,3))*(&
+            c_E(3,1)/dx(ix) * (Vx(ix, iy, iz) - Vx(ix - 1, iy, iz))+&
+            c_E(3,2)/dy(iy) * (Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)))
         END DO
     END DO
     
@@ -186,11 +186,11 @@ SUBROUTINE dot_source()
 	    iz = Nz/2
 !~ 	write(*,*) me, ix, iy, iz
 ! 		DO iz=1, Nz-2
-		    Vz(UROLL3(ix, iy, iz)) = Vz(UROLL3(ix, iy, iz)) + &
+		    Vz(ix, iy, iz) = Vz(ix, iy, iz) + &
 		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-		    Vy(UROLL3(ix, iy, iz)) = Vy(UROLL3(ix, iy, iz)) + &
+		    Vy(ix, iy, iz) = Vy(ix, iy, iz) + &
 		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-		    Vx(UROLL3(ix, iy, iz)) = Vx(UROLL3(ix, iy, iz)) + &
+		    Vx(ix, iy, iz) = Vx(ix, iy, iz) + &
 		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
 ! 	    END DO
 	
@@ -232,16 +232,16 @@ SUBROUTINE T_half_step()
 		thiscell=UROLL3(ix, iy, iz)
 		iz=Nz-2
 		anothercell=UROLL3(ix, iy, iz)
-		Vx(thiscell)=Vx(anothercell)
-		Vy(thiscell)=Vy(anothercell)
-		Vz(thiscell)=Vz(anothercell)
+		Vx(ix, iy, 0)=Vx(ix, iy, Nz-2)
+		Vy(ix, iy, 0)=Vy(ix, iy, Nz-2)
+		Vz(ix, iy, 0)=Vz(ix, iy, Nz-2)
 		iz=Nz-1
 		thiscell=UROLL3(ix, iy, iz)
 		iz=1
 		anothercell=UROLL3(ix, iy, iz)
-		Vx(thiscell)=Vx(anothercell)
-		Vy(thiscell)=Vy(anothercell)
-		Vz(thiscell)=Vz(anothercell)
+		Vx(ix, iy, Nz-1)=Vx(ix, iy, 1)
+		Vy(ix, iy, Nz-1)=Vy(ix, iy, 1)
+		Vz(ix, iy, Nz-1)=Vz(ix, iy, 1)
     END DO
     END DO
     
@@ -249,51 +249,49 @@ SUBROUTINE T_half_step()
     
     DO iz=0, Nz-1
     DO iy=0, Ny-1
-        Vx(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)
-        Vy(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)
-        Vz(UROLL3(Nx-1,iy,iz))=recvbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)
-        Vx(UROLL3(0_li,iy,iz))= recvbuff_LEFT(0*Nz*Ny+iz*Ny+iy)
-        Vy(UROLL3(0_li,iy,iz))= recvbuff_LEFT(1*Nz*Ny+iz*Ny+iy)
-        Vz(UROLL3(0_li,iy,iz))= recvbuff_LEFT(2*Nz*Ny+iz*Ny+iy)
+        Vx(Nx-1,iy,iz)=recvbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)
+        Vy(Nx-1,iy,iz)=recvbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)
+        Vz(Nx-1,iy,iz)=recvbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)
+        Vx(0_li,iy,iz)= recvbuff_LEFT(0*Nz*Ny+iz*Ny+iy)
+        Vy(0_li,iy,iz)= recvbuff_LEFT(1*Nz*Ny+iz*Ny+iy)
+        Vz(0_li,iy,iz)= recvbuff_LEFT(2*Nz*Ny+iz*Ny+iy)
     END DO
     END DO
     
     DO iz=0, Nz-1
     DO ix=0, Nx-1
-        Vx(UROLL3(ix,Ny-1,iz))=recvbuff_UP(0*Nz*Nx+iz*Nx+ix)
-        Vy(UROLL3(ix,Ny-1,iz))=recvbuff_UP(1*Nz*Nx+iz*Nx+ix)
-        Vz(UROLL3(ix,Ny-1,iz))=recvbuff_UP(2*Nz*Nx+iz*Nx+ix)
-        Vx(UROLL3(ix,0_li,iz))= recvbuff_DOWN(0*Nz*Nx+iz*Nx+ix)
-        Vy(UROLL3(ix,0_li,iz))= recvbuff_DOWN(1*Nz*Nx+iz*Nx+ix)
-        Vz(UROLL3(ix,0_li,iz))= recvbuff_DOWN(2*Nz*Nx+iz*Nx+ix)
+        Vx(ix,Ny-1,iz)=recvbuff_UP(0*Nz*Nx+iz*Nx+ix)
+        Vy(ix,Ny-1,iz)=recvbuff_UP(1*Nz*Nx+iz*Nx+ix)
+        Vz(ix,Ny-1,iz)=recvbuff_UP(2*Nz*Nx+iz*Nx+ix)
+        Vx(ix,0_li,iz)= recvbuff_DOWN(0*Nz*Nx+iz*Nx+ix)
+        Vy(ix,0_li,iz)= recvbuff_DOWN(1*Nz*Nx+iz*Nx+ix)
+        Vz(ix,0_li,iz)= recvbuff_DOWN(2*Nz*Nx+iz*Nx+ix)
     END DO
     END DO
 
     DO iz = 1, Nz - 2
         DO iy = 1, Ny - 2
             DO ix = 1, Nx - 2
-                thiscell=UROLL3(ix, iy, iz)
-                w1total=(w1(thiscell, x)+w1(thiscell, y)+w1(thiscell, z))/3
-                
+                thiscell=UROLL3(ix, iy, iz)                
 
-                dVxdx = Vx(thiscell) - Vx(UROLL3(ix - 1, iy, iz))
-                dVydy = Vy(thiscell) - Vy(UROLL3(ix, iy - 1, iz))
-                dVzdz = Vz(thiscell) - Vz(UROLL3(ix, iy, iz - 1))
+                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
                 
-                dVzdy = (Vz(UROLL3(ix, iy + 1, iz)) - Vz(thiscell))
-                dVydz = (Vy(UROLL3(ix, iy, iz + 1)) - Vy(thiscell))
+                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
                 
-                dVzdx = (Vz(UROLL3(ix + 1, iy, iz)) - Vz(thiscell))
-                dVxdz = (Vx(UROLL3(ix, iy, iz + 1)) - Vx(thiscell))
+                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
                 
-                dVydx = (Vy(UROLL3(ix + 1, iy, iz)) - Vy(thiscell))
-                dVxdy = (Vx(UROLL3(ix, iy + 1, iz)) - Vx(thiscell))
+                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
                 
                 phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
                 
-                dDx(thiscell)=D0x(thiscell)*phase
-                dDy(thiscell)=D0y(thiscell)*phase
-                dDz(thiscell)=D0z(thiscell)*phase
+                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
                 
 !                IF (procsx.EQ.(Nprocsx-1)/2 .AND. procsy.EQ.(Nprocsy-1)/2) THEN
 !                IF (ix .EQ. (Nx/2-2)*MOD(Nprocsx-1,2)+Nx/2 .AND. iy .EQ. (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2 .AND. iz .EQ. Nz/2) THEN
@@ -302,9 +300,9 @@ SUBROUTINE T_half_step()
 !                ENDIF
                 
                 !Cubic                 
-				dEx(thiscell)=(dDx(thiscell)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3))*beta_s(1,1)
-				dEy(thiscell)=(dDy(thiscell)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5))*beta_s(2,2)
-				dEz(thiscell)=(dDz(thiscell)-(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6))*beta_s(3,3)
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)-(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6))*beta_s(3,3)
 
                 !Orthorhombic 2mm
 !				dEx(thiscell)=(dDx(thiscell)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
@@ -312,37 +310,37 @@ SUBROUTINE T_half_step()
 !				dEz(thiscell)=( dDz(thiscell) &
 !                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
 
-                IF (w1(thiscell, x) .EQ. 1.0_dp .AND. w1(thiscell, y) .EQ. 1.0_dp .AND. w1(thiscell, z) .EQ. 1.0_dp) THEN
+                IF (w1(ix,iy,iz,x) .EQ. 1.0_dp .AND. w1(ix,iy,iz,y) .EQ. 1.0_dp .AND. w1(ix,iy,iz,z) .EQ. 1.0_dp) THEN
 !                cubic 
-                T1(thiscell) = T1(thiscell) +&
-                w2(thiscell, x) * c_E(1,1)*(dVxdx)+&
-                w2(thiscell, y) * c_E(1,2)*(dVydy)+&
-                w2(thiscell, z) * c_E(1,3)*(dVzdz)
+                T1(ix, iy, iz) = T1(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)+&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)+&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
 
-                T2(thiscell) = T2(thiscell) +&
-                w2(thiscell, x) * c_E(2,1)*(dVxdx)+&
-                w2(thiscell, y) * c_E(2,2)*(dVydy)+&
-                w2(thiscell, z) * c_E(2,3)*(dVzdz)
+                T2(ix, iy, iz) = T2(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)+&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)+&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
 
-                T3(thiscell) = T3(thiscell) +&
-                w2(thiscell, x) * c_E(3,1)*(dVxdx)+&
-                w2(thiscell, y) * c_E(3,2)*(dVydy)+&
-                w2(thiscell, z) * c_E(3,3)*(dVzdz)
+                T3(ix, iy, iz) = T3(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)+&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)+&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
 				
-                T4(thiscell) = T4(thiscell) +&
-                w2(thiscell, y) * c_E(4,4)*dVzdy+&
-                w2(thiscell, z) * c_E(4,4)*dVydz - &
-                dEx(thiscell)*e_piezo(1,4)*dt
+                T4(ix, iy, iz) = T4(ix, iy, iz) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy+&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt
 
-                T5(thiscell) = T5(thiscell) +&
-                w2(thiscell, x) * c_E(5,5)*dVzdx+&
-                w2(thiscell, z) * c_E(5,5)*dVxdz - &
-                dEy(thiscell)*e_piezo(2,5)*dt
+                T5(ix, iy, iz) = T5(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx+&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt
 
-                T6(thiscell) = T6(thiscell) +&
-                w2(thiscell, x) * c_E(6,6)*dVydx+&
-                w2(thiscell, y) * c_E(6,6)*dVxdy - &
-                dEz(thiscell)*e_piezo(3,6)*dt
+                T6(ix, iy, iz) = T6(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx+&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
 !                
                 !Orthorhombic 2mm
 !                T1(thiscell) = T1(thiscell) +&
@@ -376,50 +374,50 @@ SUBROUTINE T_half_step()
                 
                 ELSE
                 !Cubic
-                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(1,1)*(dVxdx)
-                T1_y(thiscell) = T1_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(1,2)*(dVydy)
-                T1_z(thiscell) = T1_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(1,3)*(dVzdz)
-                T1(thiscell) = T1_x(thiscell) + T1_y(thiscell) + T1_z(thiscell)
+                T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
+                T1_y(ix, iy, iz) = T1_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
+                T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
+                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz)
 
-                T2_x(thiscell) = T2_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(2,1)*(dVxdx)
-                T2_y(thiscell) = T2_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(2,2)*(dVydy)
-                T2_z(thiscell) = T2_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(2,3)*(dVzdz)
-                T2(thiscell) = T2_x(thiscell) + T2_y(thiscell) + T2_z(thiscell)
+                T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
+                T2_y(ix, iy, iz) = T2_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
+                T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
+                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz)
 
-                T3_x(thiscell) = T3_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(3,1)*(dVxdx)
-                T3_y(thiscell) = T3_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(3,2)*(dVydy)
-                T3_z(thiscell) = T3_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(3,3)*(dVzdz)
-                T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell)
+                T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
+                T3_y(ix, iy, iz) = T3_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
+                T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
+                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz)
 				
-                T4_y(thiscell) = T4_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(4,4)*dVzdy
-                T4_z(thiscell) = T4_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(4,4)*dVydz
-                T4(thiscell) = T4_y(thiscell) + T4_z(thiscell) - &
-                dEx(thiscell)*e_piezo(1,4)*dt
+                T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
+                T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz
+                T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt
 
-                T5_x(thiscell) = T5_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(5,5)*dVzdx
-                T5_z(thiscell) = T5_z(thiscell) * w1(thiscell, z) +&
-                w2(thiscell, z) * c_E(5,5)*dVxdz
-                T5(thiscell) = T5_x(thiscell) + T5_z(thiscell) - &
-                dEy(thiscell)*e_piezo(2,5)*dt
+                T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
+                T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
+                T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt
 
-                T6_x(thiscell) = T6_x(thiscell) * w1(thiscell, x) +&
-                w2(thiscell, x) * c_E(6,6)*dVydx
-                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
-                w2(thiscell, y) * c_E(6,6)*dVxdy
-                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell) - &
-                dEz(thiscell)*e_piezo(3,6)*dt
+                T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx
+                T6_y(ix, iy, iz) = T6_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy
+                T6(ix, iy, iz) = T6_x(ix, iy, iz) + T6_y(ix, iy, iz) - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
                 
                 !Orthorhombic 2mm
 !                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
@@ -467,13 +465,13 @@ SUBROUTINE T_half_step()
 !                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell)
                 END IF
                 
-                Disx(thiscell)=Disx(thiscell)+ dDx(thiscell)
-                Disy(thiscell)=Disy(thiscell)+ dDy(thiscell)
-                Disz(thiscell)=Disz(thiscell)+ dDz(thiscell)
+                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
                 
-                Ex(thiscell)=Ex(thiscell)+ dEx(thiscell)
-                Ey(thiscell)=Ey(thiscell)+ dEy(thiscell)
-                Ez(thiscell)=Ez(thiscell)+ dEz(thiscell)
+                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
+                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
+                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
 
             END DO
         END DO
@@ -496,9 +494,9 @@ SUBROUTINE free_boundary_T()
     iz = 1
     DO iy = 1, Ny - 2
         DO ix = 1, Nx - 2
-            T5(UROLL3(ix, iy, iz - 1)) = -T5(UROLL3(ix, iy, iz))
-            T3(UROLL3(ix, iy, iz)) = 0
-            T4(UROLL3(ix, iy, iz - 1)) = -T4(UROLL3(ix, iy, iz))
+            T5(ix, iy, iz - 1) = -T5(ix, iy, iz)
+            T3(ix, iy, iz) = 0
+            T4(ix, iy, iz - 1) = -T4(ix, iy, iz)
         END DO
     END DO
 
@@ -528,23 +526,23 @@ SUBROUTINE share_v()
                    
     DO iz=0, Nz-1
     DO iy=0, Ny-1
-        sendbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)= Vx(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)= Vy(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)= Vz(UROLL3(Nx-2,iy,iz))
-        sendbuff_LEFT(0*Nz*Ny+iz*Ny+iy) = Vx(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(1*Nz*Ny+iz*Ny+iy) = Vy(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(2*Nz*Ny+iz*Ny+iy) = Vz(UROLL3(1_li,iy,iz))
+        sendbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)= Vx(Nx-2,iy,iz)
+        sendbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)= Vy(Nx-2,iy,iz)
+        sendbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)= Vz(Nx-2,iy,iz)
+        sendbuff_LEFT(0*Nz*Ny+iz*Ny+iy) = Vx(1_li,iy,iz)
+        sendbuff_LEFT(1*Nz*Ny+iz*Ny+iy) = Vy(1_li,iy,iz)
+        sendbuff_LEFT(2*Nz*Ny+iz*Ny+iy) = Vz(1_li,iy,iz)
     END DO
     END DO
         
     DO iz=0, Nz-1
     DO ix=0, Nx-1
-        sendbuff_UP(0*Nz*Nx+iz*Nx+ix)= Vx(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(1*Nz*Nx+iz*Nx+ix)= Vy(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(2*Nz*Nx+iz*Nx+ix)= Vz(UROLL3(ix,Ny-2,iz))
-        sendbuff_DOWN(0*Nz*Nx+iz*Nx+ix) = Vx(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(1*Nz*Nx+iz*Nx+ix) = Vy(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(2*Nz*Nx+iz*Nx+ix) = Vz(UROLL3(ix,1_li,iz))
+        sendbuff_UP(0*Nz*Nx+iz*Nx+ix)= Vx(ix,Ny-2,iz)
+        sendbuff_UP(1*Nz*Nx+iz*Nx+ix)= Vy(ix,Ny-2,iz)
+        sendbuff_UP(2*Nz*Nx+iz*Nx+ix)= Vz(ix,Ny-2,iz)
+        sendbuff_DOWN(0*Nz*Nx+iz*Nx+ix) = Vx(ix,1_li,iz)
+        sendbuff_DOWN(1*Nz*Nx+iz*Nx+ix) = Vy(ix,1_li,iz)
+        sendbuff_DOWN(2*Nz*Nx+iz*Nx+ix) = Vz(ix,1_li,iz)
     END DO
     END DO
     
@@ -584,35 +582,35 @@ SUBROUTINE share_T()
                    
     DO iz=0, Nz-1
     DO iy=0, Ny-1
-        sendbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)= T1(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)= T2(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)= T3(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(3*Nz*Ny+iz*Ny+iy)= T4(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(4*Nz*Ny+iz*Ny+iy)= T5(UROLL3(Nx-2,iy,iz))
-        sendbuff_RIGHT(5*Nz*Ny+iz*Ny+iy)= T6(UROLL3(Nx-2,iy,iz))
-        sendbuff_LEFT(0*Nz*Ny+iz*Ny+iy) = T1(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(1*Nz*Ny+iz*Ny+iy) = T2(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(2*Nz*Ny+iz*Ny+iy) = T3(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(3*Nz*Ny+iz*Ny+iy) = T4(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(4*Nz*Ny+iz*Ny+iy) = T5(UROLL3(1_li,iy,iz))
-        sendbuff_LEFT(5*Nz*Ny+iz*Ny+iy) = T6(UROLL3(1_li,iy,iz))
+        sendbuff_RIGHT(0*Nz*Ny+iz*Ny+iy)= T1(Nx-2,iy,iz)
+        sendbuff_RIGHT(1*Nz*Ny+iz*Ny+iy)= T2(Nx-2,iy,iz)
+        sendbuff_RIGHT(2*Nz*Ny+iz*Ny+iy)= T3(Nx-2,iy,iz)
+        sendbuff_RIGHT(3*Nz*Ny+iz*Ny+iy)= T4(Nx-2,iy,iz)
+        sendbuff_RIGHT(4*Nz*Ny+iz*Ny+iy)= T5(Nx-2,iy,iz)
+        sendbuff_RIGHT(5*Nz*Ny+iz*Ny+iy)= T6(Nx-2,iy,iz)
+        sendbuff_LEFT(0*Nz*Ny+iz*Ny+iy) = T1(1_li,iy,iz)
+        sendbuff_LEFT(1*Nz*Ny+iz*Ny+iy) = T2(1_li,iy,iz)
+        sendbuff_LEFT(2*Nz*Ny+iz*Ny+iy) = T3(1_li,iy,iz)
+        sendbuff_LEFT(3*Nz*Ny+iz*Ny+iy) = T4(1_li,iy,iz)
+        sendbuff_LEFT(4*Nz*Ny+iz*Ny+iy) = T5(1_li,iy,iz)
+        sendbuff_LEFT(5*Nz*Ny+iz*Ny+iy) = T6(1_li,iy,iz)
     END DO
     END DO
         
     DO iz=0, Nz-1
     DO ix=0, Nx-1
-        sendbuff_UP(0*Nz*Nx+iz*Nx+ix)= T1(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(1*Nz*Nx+iz*Nx+ix)= T2(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(2*Nz*Nx+iz*Nx+ix)= T3(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(3*Nz*Nx+iz*Nx+ix)= T4(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(4*Nz*Nx+iz*Nx+ix)= T5(UROLL3(ix,Ny-2,iz))
-        sendbuff_UP(5*Nz*Nx+iz*Nx+ix)= T6(UROLL3(ix,Ny-2,iz))
-        sendbuff_DOWN(0*Nz*Nx+iz*Nx+ix) = T1(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(1*Nz*Nx+iz*Nx+ix) = T2(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(2*Nz*Nx+iz*Nx+ix) = T3(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(3*Nz*Nx+iz*Nx+ix) = T4(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(4*Nz*Nx+iz*Nx+ix) = T5(UROLL3(ix,1_li,iz))
-        sendbuff_DOWN(5*Nz*Nx+iz*Nx+ix) = T6(UROLL3(ix,1_li,iz))
+        sendbuff_UP(0*Nz*Nx+iz*Nx+ix)= T1(ix,Ny-2,iz)
+        sendbuff_UP(1*Nz*Nx+iz*Nx+ix)= T2(ix,Ny-2,iz)
+        sendbuff_UP(2*Nz*Nx+iz*Nx+ix)= T3(ix,Ny-2,iz)
+        sendbuff_UP(3*Nz*Nx+iz*Nx+ix)= T4(ix,Ny-2,iz)
+        sendbuff_UP(4*Nz*Nx+iz*Nx+ix)= T5(ix,Ny-2,iz)
+        sendbuff_UP(5*Nz*Nx+iz*Nx+ix)= T6(ix,Ny-2,iz)
+        sendbuff_DOWN(0*Nz*Nx+iz*Nx+ix) = T1(ix,1_li,iz)
+        sendbuff_DOWN(1*Nz*Nx+iz*Nx+ix) = T2(ix,1_li,iz)
+        sendbuff_DOWN(2*Nz*Nx+iz*Nx+ix) = T3(ix,1_li,iz)
+        sendbuff_DOWN(3*Nz*Nx+iz*Nx+ix) = T4(ix,1_li,iz)
+        sendbuff_DOWN(4*Nz*Nx+iz*Nx+ix) = T5(ix,1_li,iz)
+        sendbuff_DOWN(5*Nz*Nx+iz*Nx+ix) = T6(ix,1_li,iz)
     END DO
     END DO
     

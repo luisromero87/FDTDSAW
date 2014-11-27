@@ -39,9 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/global_vars.o \
 	${OBJECTDIR}/libs/read_input_param.o \
 	${OBJECTDIR}/libs/uroll3.o \
-	${OBJECTDIR}/libs/allocate_memory.o \
 	${OBJECTDIR}/libs/load_material.o \
-	${OBJECTDIR}/libs/load_pml.o \
 	${OBJECTDIR}/libs/write_to_vtk.o \
 	${OBJECTDIR}/libs/time_step.o \
 	${OBJECTDIR}/libs/Lib_FDTD_SAW.o \

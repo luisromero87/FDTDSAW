@@ -10,6 +10,7 @@ PRIVATE
 
 PUBLIC :: read_input_param
 PUBLIC :: allocate_memory
+PUBLIC :: allocate_memory_pml
 PUBLIC :: deallocate_memory
 PUBLIC :: load_material
 PUBLIC :: SETUP_MPI_VARS
@@ -165,50 +166,18 @@ SUBROUTINE allocate_memory()
     
     ALLOCATE(dx(0:Nx - 1), dy(0:Ny - 1), dz(0:Nz - 1))
 
-    ALLOCATE(Vx(0:NCeldas - 1), Vy(0:NCeldas - 1), Vz(0:NCeldas - 1))
-    ALLOCATE(T1(0:NCeldas - 1), T2(0:NCeldas - 1), T3(0:NCeldas - 1), T4(0:NCeldas - 1), T5(0:NCeldas - 1), T6(0:NCeldas - 1))
+    ALLOCATE(Vx(0:Nx-1,0:Ny-1,0:Nz-1), Vy(0:Nx-1,0:Ny-1,0:Nz-1), Vz(0:Nx-1,0:Ny-1,0:Nz-1))
+    ALLOCATE(T1(0:Nx-1,0:Ny-1,0:Nz-1), T2(0:Nx-1,0:Ny-1,0:Nz-1), T3(0:Nx-1,0:Ny-1,0:Nz-1))
+    ALLOCATE(T4(0:Nx-1,0:Ny-1,0:Nz-1), T5(0:Nx-1,0:Ny-1,0:Nz-1), T6(0:Nx-1,0:Ny-1,0:Nz-1))
+
+    ALLOCATE(dEx(0:Nx-1,0:Ny-1,0:Nz-1), dEy(0:Nx-1,0:Ny-1,0:Nz-1), dEz(0:Nx-1,0:Ny-1,0:Nz-1))
+    ALLOCATE(Ex(0:Nx-1,0:Ny-1,0:Nz-1), Ey(0:Nx-1,0:Ny-1,0:Nz-1), Ez(0:Nx-1,0:Ny-1,0:Nz-1))
+
+    ALLOCATE(dDx(0:Nx-1,0:Ny-1,0:Nz-1), dDy(0:Nx-1,0:Ny-1,0:Nz-1), dDz(0:Nx-1,0:Ny-1,0:Nz-1))
+    ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1))
+    ALLOCATE(Disx(0:Nx-1,0:Ny-1,0:Nz-1), Disy(0:Nx-1,0:Ny-1,0:Nz-1), Disz(0:Nx-1,0:Ny-1,0:Nz-1))
     
-    ALLOCATE(Vx_x(0:NCeldas - 1))
-    ALLOCATE(Vx_y(0:NCeldas - 1))
-    ALLOCATE(Vx_z(0:NCeldas - 1))
-
-    ALLOCATE(Vy_x(0:NCeldas - 1))
-    ALLOCATE(Vy_y(0:NCeldas - 1))
-    ALLOCATE(Vy_z(0:NCeldas - 1))
-
-    ALLOCATE(Vz_x(0:NCeldas - 1))
-    ALLOCATE(Vz_y(0:NCeldas - 1))
-    ALLOCATE(Vz_z(0:NCeldas - 1))
-
-    ALLOCATE(T1_x(0:NCeldas - 1))
-    ALLOCATE(T1_y(0:NCeldas - 1))
-    ALLOCATE(T1_z(0:NCeldas - 1))
-
-    ALLOCATE(T2_x(0:NCeldas - 1))
-    ALLOCATE(T2_y(0:NCeldas - 1))
-    ALLOCATE(T2_z(0:NCeldas - 1))
-
-    ALLOCATE(T3_x(0:NCeldas - 1))
-    ALLOCATE(T3_y(0:NCeldas - 1))
-    ALLOCATE(T3_z(0:NCeldas - 1))
-
-    ALLOCATE(T4_y(0:NCeldas - 1))
-    ALLOCATE(T4_z(0:NCeldas - 1))
-
-    ALLOCATE(T5_x(0:NCeldas - 1))
-    ALLOCATE(T5_z(0:NCeldas - 1))
-
-    ALLOCATE(T6_x(0:NCeldas - 1))
-    ALLOCATE(T6_y(0:NCeldas - 1))
-
-    ALLOCATE(dEx(0:NCeldas - 1), dEy(0:NCeldas - 1), dEz(0:NCeldas - 1))
-    ALLOCATE(Ex(0:NCeldas - 1), Ey(0:NCeldas - 1), Ez(0:NCeldas - 1))
-
-    ALLOCATE(dDx(0:NCeldas - 1), dDy(0:NCeldas - 1), dDz(0:NCeldas - 1))
-    ALLOCATE(D0x(0:NCeldas - 1), D0y(0:NCeldas - 1), D0z(0:NCeldas - 1))
-    ALLOCATE(Disx(0:NCeldas - 1), Disy(0:NCeldas - 1), Disz(0:NCeldas - 1))
-    
-    ALLOCATE(w1(0:NCeldas - 1, 1:3), w2(0:NCeldas - 1, 1:3))
+    ALLOCATE(w1(0:Nx-1,0:Ny-1,0:Nz-1, 1:3), w2(0:Nx-1,0:Ny-1,0:Nz-1, 1:3))
     
     ALLOCATE(mpibufferx(0:6*Nz*Ny-1), mpibuffery(0:6*Nz*Nx-1))
     
@@ -227,45 +196,87 @@ SUBROUTINE allocate_memory()
     
     Vx = 0.0_dp; Vy = 0.0_dp; Vz = 0.0_dp
     T1 = 0.0_dp; T2 = 0.0_dp; T3 = 0.0_dp; T4 = 0.0_dp; T5 = 0.0_dp; T6 = 0.0_dp
-    
-    Vx_x = 0.0_dp
-    Vx_y = 0.0_dp
-    Vx_z = 0.0_dp
-
-    Vy_x = 0.0_dp
-    Vy_y = 0.0_dp
-    Vy_z = 0.0_dp
-
-    Vz_x = 0.0_dp
-    Vz_y = 0.0_dp
-    Vz_z = 0.0_dp
-
-    T1_x = 0.0_dp
-    T1_y = 0.0_dp
-    T1_z = 0.0_dp
-
-    T2_x = 0.0_dp
-    T2_y = 0.0_dp
-    T2_z = 0.0_dp
-
-    T3_x = 0.0_dp
-    T3_y = 0.0_dp
-    T3_z = 0.0_dp
-
-    T4_y = 0.0_dp
-    T4_z = 0.0_dp
-
-    T5_x = 0.0_dp
-    T5_z = 0.0_dp
-
-    T6_x = 0.0_dp
-    T6_y = 0.0_dp
 
     dEx = 0.0_dp; dEy = 0.0_dp; dEz = 0.0_dp
     dDx = 0.0_dp; dDy = 0.0_dp; dDz = 0.0_dp
     D0x = 0.0_dp; D0y = 0.0_dp; D0z = 0.0_dp
     
 ENDSUBROUTINE allocate_memory
+
+
+SUBROUTINE allocate_memory_pml()
+    IMPLICIT NONE
+    INTEGER :: xstart,xend,ystart,yend
+    
+    xstart=0; xend=0; ystart=0; yend=0;
+    
+    IF (PMLwidth .NE. 0) THEN
+        IF (procsx==0) THEN
+            xstart=0
+            xend=PMLwidth-1
+        ENDIF
+        IF (procsx==Nprocsx-1) THEN
+            xstart=Nx-PMLwidth
+            xend=Nx-1
+        ENDIF
+        IF (procsy==0) THEN
+            ystart=0
+            yend=PMLwidth-1
+        ENDIF
+        IF (procsy==Nprocsy-1) THEN
+            ystart=Ny-PMLwidth
+            yend=Ny-1
+        ENDIF
+        
+            ALLOCATE(Vx_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(Vx_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(Vx_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(Vy_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(Vy_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(Vy_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(Vz_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(Vz_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(Vz_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(T1_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T1_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T1_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(T2_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T2_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T2_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(T3_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T3_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T3_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(T4_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T4_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(T5_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T5_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        
+            ALLOCATE(T6_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            ALLOCATE(T6_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+            
+        
+            Vx_x = 0.0_dp; Vx_y = 0.0_dp ;Vx_z = 0.0_dp
+            Vy_x = 0.0_dp; Vy_y = 0.0_dp; Vy_z = 0.0_dp
+            Vz_x = 0.0_dp;  Vz_y = 0.0_dp; Vz_z = 0.0_dp
+        
+            T1_x = 0.0_dp; T1_y = 0.0_dp; T1_z = 0.0_dp
+            T2_x = 0.0_dp; T2_y = 0.0_dp; T2_z = 0.0_dp
+            T3_x = 0.0_dp; T3_y = 0.0_dp; T3_z = 0.0_dp
+        
+            T4_y = 0.0_dp; T4_z = 0.0_dp
+            T5_x = 0.0_dp; T5_z = 0.0_dp
+            T6_x = 0.0_dp; T6_y = 0.0_dp
+        
+    ENDIF
+    
+ENDSUBROUTINE allocate_memory_pml
 
 SUBROUTINE deallocate_memory()
     IMPLICIT NONE
@@ -435,13 +446,13 @@ SUBROUTINE PML_weights(Debug)
 	    DO iy=0,Ny-1
 			!<- x
 			IF (procsx==0) THEN
-				w1(UROLL3(PMLwidth-1-ix,iy,iz),1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(UROLL3(PMLwidth-1-ix,iy,iz),1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+				w1(PMLwidth-1-ix,iy,iz,1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+				w2(PMLwidth-1-ix,iy,iz,1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
 			END IF
 			!   x ->
 			IF (procsx==Nprocsx-1) THEN
-				w1(UROLL3(Nx-PMLwidth+ix,iy,iz),1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(UROLL3(Nx-PMLwidth+ix,iy,iz),1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+				w1(Nx-PMLwidth+ix,iy,iz,1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+				w2(Nx-PMLwidth+ix,iy,iz,1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
 			END IF
 	    END DO
 	    END DO
@@ -453,13 +464,13 @@ SUBROUTINE PML_weights(Debug)
 	    DO ix=0,Nx-1
 			!<- y
 			IF (procsy .EQ. 0) THEN
-				w1(UROLL3(ix,PMLwidth-1-iy,iz),2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(UROLL3(ix,PMLwidth-1-iy,iz),2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+				w1(ix,PMLwidth-1-iy,iz,2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+				w2(ix,PMLwidth-1-iy,iz,2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
 			END IF
 			!   y ->
 			IF (procsy .EQ. Nprocsy-1) THEN
-				w1(UROLL3(ix,Ny-PMLwidth+iy,iz),2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(UROLL3(ix,Ny-PMLwidth+iy,iz),2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+				w1(ix,Ny-PMLwidth+iy,iz,2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+				w2(ix,Ny-PMLwidth+iy,iz,2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
 			END IF
 	    END DO
 	    END DO
@@ -470,8 +481,8 @@ SUBROUTINE PML_weights(Debug)
 	    DO iy=0,Ny-1
 	    DO ix=0,Nx-1
 			!   z ->
-				w1(UROLL3(ix,iy,Nz-PMLwidth+iz),3) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(UROLL3(ix,iy,Nz-PMLwidth+iz),3) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+				w1(ix,iy,Nz-PMLwidth+iz,3) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+				w2(ix,iy,Nz-PMLwidth+iz,3) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
 	    END DO
 	    END DO
     END DO
@@ -485,12 +496,12 @@ SUBROUTINE PML_weights(Debug)
             DO axis = 1, 3
                 !write(*, *) axis
                 DO ix = 0, Nx - 1
-                    WRITE(11) ((w1(UROLL3(ix, iy, iz), axis), iy = 0, Ny - 1), iz = 0, Nz - 1)
+                    WRITE(11) ((w1(ix, iy, iz, axis), iy = 0, Ny - 1), iz = 0, Nz - 1)
                 END DO
             END DO
             DO axis = 1, 3
                 DO ix = 0, Nx - 1
-                    WRITE(11) ((w2(UROLL3(ix, iy, iz), axis), iy = 0, Ny - 1), iz = 0, Nz - 1)
+                    WRITE(11) ((w2(ix, iy, iz, axis), iy = 0, Ny - 1), iz = 0, Nz - 1)
                 END DO
             END DO
             CLOSE(11)
@@ -514,9 +525,9 @@ SUBROUTINE load_D0()
     
     IF (me .EQ. 0 .AND. st .EQ. 0) THEN
         DO ix = 0, Nx - 1
-        READ(12) ((D0x(UROLL3(ix, iy, iz)), iy = 0, Ny - 1), iz = 0, Nz - 1)
-        READ(12) ((D0y(UROLL3(ix, iy, iz)), iy = 0, Ny - 1), iz = 0, Nz - 1)
-        READ(12) ((D0z(UROLL3(ix, iy, iz)), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        READ(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        READ(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        READ(12) ((D0z(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
         END DO
     ELSE IF (me .EQ. 0) THEN
         WRITE(*,*) "No input data for D0, setting D0 to 0.0\n"
@@ -537,7 +548,7 @@ SUBROUTINE Get_Total_Kinetic_Energy()
         DO iy = 1, Ny - 2
             DO ix = 1, Nx - 2
                 thiscell=UROLL3(ix, iy, iz)
-                U_k=U_k+Vx(thiscell)**2+Vy(thiscell)**2+Vz(thiscell)**2
+                U_k=U_k+Vx(ix, iy, iz)**2+Vy(ix, iy, iz)**2+Vz(ix, iy, iz)**2
             END DO
         END DO
     END DO
@@ -559,12 +570,12 @@ SUBROUTINE Get_Total_Strain_Energy()
         DO iy = 1, Ny - 2
             DO ix = 1, Nx - 2
                 thiscell=UROLL3(ix, iy, iz)
-                S1 = s_E(1,1)*T1(thiscell)+s_E(1,2)*T2(thiscell)+s_E(1,3)*T3(thiscell)
-                S2 = s_E(2,1)*T1(thiscell)+s_E(2,2)*T2(thiscell)+s_E(2,3)*T3(thiscell)
-                S3 = s_E(3,1)*T1(thiscell)+s_E(3,2)*T2(thiscell)+s_E(3,3)*T3(thiscell)
-                S4 = s_E(4,4)*T4(thiscell)
-                S5 = s_E(5,5)*T5(thiscell)
-                S6 = s_E(6,6)*T6(thiscell)
+                S1 = s_E(1,1)*T1(ix, iy, iz)+s_E(1,2)*T2(ix, iy, iz)+s_E(1,3)*T3(ix, iy, iz)
+                S2 = s_E(2,1)*T1(ix, iy, iz)+s_E(2,2)*T2(ix, iy, iz)+s_E(2,3)*T3(ix, iy, iz)
+                S3 = s_E(3,1)*T1(ix, iy, iz)+s_E(3,2)*T2(ix, iy, iz)+s_E(3,3)*T3(ix, iy, iz)
+                S4 = s_E(4,4)*T4(ix, iy, iz)
+                S5 = s_E(5,5)*T5(ix, iy, iz)
+                S6 = s_E(6,6)*T6(ix, iy, iz)
                 aux = S1*(S1*c_E(1,1)+S2*c_E(1,2)+S3*c_E(1,3)) +&
                       S2*(S1*c_E(2,1)+S2*c_E(2,2)+S3*c_E(2,3)) +&
                       S3*(S1*c_E(3,1)+S2*c_E(3,2)+S3*c_E(3,3)) +&
@@ -592,7 +603,7 @@ SUBROUTINE Get_Total_Electric_Energy()
         DO iy = 1, Ny - 2
             DO ix = 1, Nx - 2
                 thiscell=UROLL3(ix, iy, iz)
-                U_e = U_e + Ex(thiscell)**2 + Ey(thiscell)**2 + Ez(thiscell)**2
+                U_e = U_e + Ex(ix, iy, iz)**2 + Ey(ix, iy, iz)**2 + Ez(ix, iy, iz)**2
             END DO
         END DO
     END DO

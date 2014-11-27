@@ -67,7 +67,7 @@ SUBROUTINE write_volume_v (outfile, data_name)
     DO iz = 1, Nz-1
       DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
-	    write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
+	    write(12,5000) REAL(Vx(ix,iy,iz),Single),REAL(Vy(ix,iy,iz),Single),REAL(Vz(ix,iy,iz),Single)
 	END DO
       END DO 
     END DO
@@ -77,7 +77,7 @@ SUBROUTINE write_volume_v (outfile, data_name)
     DO iz = 1, Nz-1
       DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
-	    write(12,5000) REAL(Ex(UROLL3(ix,iy,iz)),Single),REAL(Ey(UROLL3(ix,iy,iz)),Single),REAL(Ez(UROLL3(ix,iy,iz)),Single)
+	    write(12,5000) REAL(Ex(ix,iy,iz),Single),REAL(Ey(ix,iy,iz),Single),REAL(Ez(ix,iy,iz),Single)
 	END DO
       END DO 
     END DO
@@ -138,7 +138,7 @@ SUBROUTINE write_free_surface (outfile, data_name)
     iz = Nz/2
     DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
-	    write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
+	    write(12,5000) REAL(Vx(ix,iy,iz),Single),REAL(Vy(ix,iy,iz),Single),REAL(Vz(ix,iy,iz),Single)
 	END DO
     END DO 
     
@@ -196,7 +196,7 @@ SUBROUTINE write_volume_w1 ()
     DO iz = 1, Nz-1
     DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
-	    write(12,5000) REAL(w1(UROLL3(ix,iy,iz),x),Single),REAL(w1(UROLL3(ix,iy,iz),y),Single),REAL(w1(UROLL3(ix,iy,iz),z),Single)
+	    write(12,5000) REAL(w1(ix,iy,iz,x),Single),REAL(w1(ix,iy,iz,y),Single),REAL(w1(ix,iy,iz,z),Single)
 	END DO
     END DO 
     END DO
@@ -257,7 +257,7 @@ SUBROUTINE xzplane()
                 
         DO iz = 1, Nz-1
         DO ix = 1, Nx-2
-            write(12,5000) REAL(Vx(UROLL3(ix,iy,iz)),Single),REAL(Vy(UROLL3(ix,iy,iz)),Single),REAL(Vz(UROLL3(ix,iy,iz)),Single)
+            write(12,5000) REAL(Vx(ix,iy,iz),Single),REAL(Vy(ix,iy,iz),Single),REAL(Vz(ix,iy,iz),Single)
         END DO 
         END DO
         WRITE(12,*) "SCALARS "//"E"//" double 3"
@@ -265,7 +265,7 @@ SUBROUTINE xzplane()
                 
         DO iz = 1, Nz-1
         DO ix = 1, Nx-2
-            write(12,5000) REAL(Ex(UROLL3(ix,iy,iz)),Single),REAL(Ey(UROLL3(ix,iy,iz)),Single),REAL(Ez(UROLL3(ix,iy,iz)),Single)
+            write(12,5000) REAL(Ex(ix,iy,iz),Single),REAL(Ey(ix,iy,iz),Single),REAL(Ez(ix,iy,iz),Single)
         END DO 
         END DO
         
@@ -322,7 +322,7 @@ SUBROUTINE write_volume_D0 ()
     DO iz = 1, Nz-1
     DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
-	    write(12,5000) REAL(D0x(UROLL3(ix,iy,iz)),Single),REAL(D0y(UROLL3(ix,iy,iz)),Single),REAL(D0z(UROLL3(ix,iy,iz)),Single)
+	    write(12,5000) REAL(D0x(ix,iy,iz),Single),REAL(D0y(ix,iy,iz),Single),REAL(D0z(ix,iy,iz),Single)
 	END DO
     END DO 
     END DO

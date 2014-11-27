@@ -145,6 +145,7 @@ PROGRAM acousticwaves
     vbuffsizey=(3*Nz*Nx)
     
     CALL SETUP_MPI_VARS(Debug=Debug)
+    CALL allocate_memory_pml()
     CALL PML_weights() !w1, w2 ...ok
     CALL load_D0() !w1, w2 ...ok
     IF (Debug .EQ. 'True') THEN

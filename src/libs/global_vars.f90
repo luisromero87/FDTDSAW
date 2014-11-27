@@ -72,68 +72,68 @@ REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: beta_s
 REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: e_piezo
 
 !Mechanical variables
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vx
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vx_x
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vx_y
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vx_z
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vx
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vx_x
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vx_y
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vx_z
 
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vy
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vy_x
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vy_y
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vy_z
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vy
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vy_x
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vy_y
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vy_z
 
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vz
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vz_x
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vz_y
-REAL(Double), DIMENSION(:), POINTER, PUBLIC :: Vz_z
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vz
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vz_x
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vz_y
+REAL(Double), DIMENSION(:,:,:), POINTER, PUBLIC :: Vz_z
 
-REAL(Double), DIMENSION(:), POINTER :: T1
-REAL(Double), DIMENSION(:), POINTER :: T1_x
-REAL(Double), DIMENSION(:), POINTER :: T1_y
-REAL(Double), DIMENSION(:), POINTER :: T1_z
+REAL(Double), DIMENSION(:,:,:), POINTER :: T1
+REAL(Double), DIMENSION(:,:,:), POINTER :: T1_x
+REAL(Double), DIMENSION(:,:,:), POINTER :: T1_y
+REAL(Double), DIMENSION(:,:,:), POINTER :: T1_z
 
-REAL(Double), DIMENSION(:), POINTER :: T2
-REAL(Double), DIMENSION(:), POINTER :: T2_x
-REAL(Double), DIMENSION(:), POINTER :: T2_y
-REAL(Double), DIMENSION(:), POINTER :: T2_z
+REAL(Double), DIMENSION(:,:,:), POINTER :: T2
+REAL(Double), DIMENSION(:,:,:), POINTER :: T2_x
+REAL(Double), DIMENSION(:,:,:), POINTER :: T2_y
+REAL(Double), DIMENSION(:,:,:), POINTER :: T2_z
 
-REAL(Double), DIMENSION(:), POINTER :: T3
-REAL(Double), DIMENSION(:), POINTER :: T3_x
-REAL(Double), DIMENSION(:), POINTER :: T3_y
-REAL(Double), DIMENSION(:), POINTER :: T3_z
+REAL(Double), DIMENSION(:,:,:), POINTER :: T3
+REAL(Double), DIMENSION(:,:,:), POINTER :: T3_x
+REAL(Double), DIMENSION(:,:,:), POINTER :: T3_y
+REAL(Double), DIMENSION(:,:,:), POINTER :: T3_z
 
-REAL(Double), DIMENSION(:), POINTER :: T4
-REAL(Double), DIMENSION(:), POINTER :: T4_y
-REAL(Double), DIMENSION(:), POINTER :: T4_z
+REAL(Double), DIMENSION(:,:,:), POINTER :: T4
+REAL(Double), DIMENSION(:,:,:), POINTER :: T4_y
+REAL(Double), DIMENSION(:,:,:), POINTER :: T4_z
 
-REAL(Double), DIMENSION(:), POINTER :: T5
-REAL(Double), DIMENSION(:), POINTER :: T5_x
-REAL(Double), DIMENSION(:), POINTER :: T5_z
+REAL(Double), DIMENSION(:,:,:), POINTER :: T5
+REAL(Double), DIMENSION(:,:,:), POINTER :: T5_x
+REAL(Double), DIMENSION(:,:,:), POINTER :: T5_z
 
-REAL(Double), DIMENSION(:), POINTER :: T6
-REAL(Double), DIMENSION(:), POINTER :: T6_x
-REAL(Double), DIMENSION(:), POINTER :: T6_y
+REAL(Double), DIMENSION(:,:,:), POINTER :: T6
+REAL(Double), DIMENSION(:,:,:), POINTER :: T6_x
+REAL(Double), DIMENSION(:,:,:), POINTER :: T6_y
 
 !Electrical variable
-REAL(Double), DIMENSION(:), POINTER :: Ex
-REAL(Double), DIMENSION(:), POINTER :: Ey
-REAL(Double), DIMENSION(:), POINTER :: Ez
+REAL(Double), DIMENSION(:,:,:), POINTER :: Ex
+REAL(Double), DIMENSION(:,:,:), POINTER :: Ey
+REAL(Double), DIMENSION(:,:,:), POINTER :: Ez
 
-REAL(Double), DIMENSION(:), POINTER :: dEx
-REAL(Double), DIMENSION(:), POINTER :: dEy
-REAL(Double), DIMENSION(:), POINTER :: dEz
+REAL(Double), DIMENSION(:,:,:), POINTER :: dEx
+REAL(Double), DIMENSION(:,:,:), POINTER :: dEy
+REAL(Double), DIMENSION(:,:,:), POINTER :: dEz
 
-REAL(Double), DIMENSION(:), POINTER :: dDx
-REAL(Double), DIMENSION(:), POINTER :: dDy
-REAL(Double), DIMENSION(:), POINTER :: dDz
+REAL(Double), DIMENSION(:,:,:), POINTER :: dDx
+REAL(Double), DIMENSION(:,:,:), POINTER :: dDy
+REAL(Double), DIMENSION(:,:,:), POINTER :: dDz
 
-REAL(Double), DIMENSION(:), POINTER :: D0x
-REAL(Double), DIMENSION(:), POINTER :: D0y
-REAL(Double), DIMENSION(:), POINTER :: D0z
+REAL(Double), DIMENSION(:,:,:), POINTER :: D0x
+REAL(Double), DIMENSION(:,:,:), POINTER :: D0y
+REAL(Double), DIMENSION(:,:,:), POINTER :: D0z
 
-REAL(Double), DIMENSION(:), POINTER :: Disx
-REAL(Double), DIMENSION(:), POINTER :: Disy
-REAL(Double), DIMENSION(:), POINTER :: Disz
+REAL(Double), DIMENSION(:,:,:), POINTER :: Disx
+REAL(Double), DIMENSION(:,:,:), POINTER :: Disy
+REAL(Double), DIMENSION(:,:,:), POINTER :: Disz
 
 REAL(Double) :: phase=0.0_dp
 
@@ -143,8 +143,8 @@ INTEGER :: PMLwidth
         
 REAL(Double) :: m, smax
 
-REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: w1
-REAL(Double), DIMENSION(:,:), POINTER, PUBLIC :: w2
+REAL(Double), DIMENSION(:,:,:,:), POINTER, PUBLIC :: w1
+REAL(Double), DIMENSION(:,:,:,:), POINTER, PUBLIC :: w2
 
 REAL(Double), PUBLIC :: U_k
 REAL(Double), PUBLIC :: U_k_total
