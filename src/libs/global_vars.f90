@@ -34,7 +34,7 @@ REAL(Double), DIMENSION (:), POINTER, PUBLIC :: sendbuff_RIGHT
 REAL(Double), DIMENSION (:), POINTER, PUBLIC :: sendbuff_LEFT
 
 !INPUT PARAMETERS
-CHARACTER(LEN=name_len), PUBLIC :: sim_config='configfiles/sim.config'
+CHARACTER(LEN=name_len), PUBLIC :: sim_config='configfiles/simconfig'
 CHARACTER(LEN = name_len), PUBLIC :: material = 'bi12geo20' !Default
 
 INTEGER(Long), PUBLIC :: NGx
