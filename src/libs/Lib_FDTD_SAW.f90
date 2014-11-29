@@ -206,73 +206,75 @@ ENDSUBROUTINE allocate_memory
 
 SUBROUTINE allocate_memory_pml()
     IMPLICIT NONE
-    INTEGER :: xstart,xend,ystart,yend
     
-    xstart=0; xend=0; ystart=0; yend=0;
+    INTEGER :: pmlxstart,  pmlxend,  pmlystart,  pmlyend,  pmlzstart,  pmlzend
+    pmlxstart=0;  pmlxend=Nx-1;  pmlystart=0;  pmlyend=Ny-1;  pmlzstart=Nz-PMLwidth;  pmlzend=Nz-1
     
-    IF (PMLwidth .NE. 0) THEN
-        IF (procsx==0) THEN
-            xstart=0
-            xend=PMLwidth-1
+    xstart=1; xend=Nx-2; ystart=1; yend=Ny-2; zstart=1; zend=Nz-2;
+    IF (PMLwidth .GT. 0) THEN
+        IF (procsx .EQ. 0) THEN
+            xstart=PMLwidth
         ENDIF
-        IF (procsx==Nprocsx-1) THEN
-            xstart=Nx-PMLwidth
-            xend=Nx-1
+        IF (procsx .EQ. Nprocsx-1) THEN
+            xend=Nx-PMLwidth-1
         ENDIF
-        IF (procsy==0) THEN
-            ystart=0
-            yend=PMLwidth-1
+        IF (procsy .EQ. 0) THEN
+            ystart=PMLwidth
         ENDIF
-        IF (procsy==Nprocsy-1) THEN
-            ystart=Ny-PMLwidth
-            yend=Ny-1
+        IF (procsy .EQ. Nprocsy-1) THEN
+            yend=Ny-PMLwidth-1
         ENDIF
+        zend=Nz-PMLwidth-1;
         
-            ALLOCATE(Vx_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(Vx_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(Vx_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(Vy_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(Vy_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(Vy_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(Vz_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(Vz_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(Vz_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(T1_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T1_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T1_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(T2_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T2_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T2_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(T3_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T3_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T3_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(T4_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T4_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(T5_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T5_z(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-        
-            ALLOCATE(T6_x(0:PMLwidth-1,0:Ny-1,0:Nz-1))
-            ALLOCATE(T6_y(0:PMLwidth-1,0:Ny-1,0:Nz-1))
+        IF (procsx .EQ. 0 .OR. procsx .EQ. Nprocsx-1 .OR. procsy .EQ. 0 .OR. procsy .EQ. Nprocsy-1) THEN
+            pmlzstart=0
+            pmlzend=Nz-1
+        ENDIF
             
+        ALLOCATE(Vx_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(Vx_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(Vx_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
         
-            Vx_x = 0.0_dp; Vx_y = 0.0_dp ;Vx_z = 0.0_dp
-            Vy_x = 0.0_dp; Vy_y = 0.0_dp; Vy_z = 0.0_dp
-            Vz_x = 0.0_dp;  Vz_y = 0.0_dp; Vz_z = 0.0_dp
+        ALLOCATE(Vy_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(Vy_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(Vy_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
         
-            T1_x = 0.0_dp; T1_y = 0.0_dp; T1_z = 0.0_dp
-            T2_x = 0.0_dp; T2_y = 0.0_dp; T2_z = 0.0_dp
-            T3_x = 0.0_dp; T3_y = 0.0_dp; T3_z = 0.0_dp
+        ALLOCATE(Vz_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(Vz_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(Vz_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
         
-            T4_y = 0.0_dp; T4_z = 0.0_dp
-            T5_x = 0.0_dp; T5_z = 0.0_dp
-            T6_x = 0.0_dp; T6_y = 0.0_dp
+        ALLOCATE(T1_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T1_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T1_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        
+        ALLOCATE(T2_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T2_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T2_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        
+        ALLOCATE(T3_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T3_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T3_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        
+        ALLOCATE(T4_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T4_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        
+        ALLOCATE(T5_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T5_z(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        
+        ALLOCATE(T6_x(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        ALLOCATE(T6_y(0:Nx-1, 0:Ny-1, pmlzstart:pmlzend))
+        
+        Vx_x = 0.0_dp; Vy_x = 0.0_dp; Vz_x = 0.0_dp;
+        T1_x = 0.0_dp; T2_x = 0.0_dp; T3_x = 0.0_dp;
+        T5_x = 0.0_dp; T6_x = 0.0_dp;
+        
+        Vx_y = 0.0_dp; Vy_y = 0.0_dp; Vz_y = 0.0_dp;
+        T1_y = 0.0_dp; T2_y = 0.0_dp; T3_y = 0.0_dp;
+        T4_y = 0.0_dp; T6_y = 0.0_dp;
+        
+        Vx_z = 0.0_dp; Vy_z = 0.0_dp; Vz_z = 0.0_dp;
+        T1_z = 0.0_dp; T2_z = 0.0_dp; T3_z = 0.0_dp;
+        T4_z = 0.0_dp; T5_z = 0.0_dp;
         
     ENDIF
     

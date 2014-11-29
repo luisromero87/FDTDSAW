@@ -172,10 +172,10 @@ PROGRAM acousticwaves
         CALL Get_Total_Strain_Energy()
         CALL Get_Total_Electric_Energy()
 !~         CALL free_boundary_T()
-        IF (MOD(STEP, 100) .EQ. 0) THEN
+        IF (MOD(STEP, 10) .EQ. 0) THEN
             CALL xzplane()
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
-            WRITE(outfile, 1000) me, step/100
+            WRITE(outfile, 1000) me, step/10
             data_name = 'v'
             CALL write_free_surface(outfile, data_name)
 !            CALL open_vtk_file(outfile)

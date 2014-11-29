@@ -17,7 +17,6 @@ SUBROUTINE v_half_step()
     INTEGER(Long) :: thiscell, anothercell
     REAL (Double) :: w1total
     
-    
     DO iy=0, Ny-1
 	DO ix=0, Nx-1
 		iz=0
@@ -79,15 +78,10 @@ SUBROUTINE v_half_step()
     END DO
     END DO
     
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
-                thiscell=UROLL3(ix, iy, iz)
-                IF (w1(ix, iy, iz, x) .EQ. 1.0_dp .AND. w1(ix, iy, iz, y) .EQ. 1.0_dp .AND. w1(ix, iy, iz, z) .EQ. 1.0_dp) THEN
+    DO iz = zstart, zend
+        DO iy = ystart, yend
+            DO ix = xstart, xend
                 
-!~                 w1total=(w1(ix, iy, iz, x)+w1(ix, iy, iz, y)+w1(ix, iy, iz, z))/3
-                
-!~                 Vx(ix, iy, iz) = Vx(ix, iy, iz) * w1total + rho_inv *(&
                 Vx(ix,iy,iz) = Vx(ix,iy,iz) + rho_inv *(&
                 w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))+&
                 w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))+&
@@ -103,7 +97,58 @@ SUBROUTINE v_half_step()
                 w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))+&
                 w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz)))
                 
-                ELSE
+            ENDDO
+        ENDDO
+    ENDDO
+    
+    DO iz = zend+1, Nz-2
+        DO iy = 1, Ny-2
+            DO ix = 1, Nx-2
+                     
+                Vx_x(ix,iy,iz) = Vx_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))
+
+                Vx_y(ix,iy,iz) = Vx_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))
+
+                Vx_z(ix,iy,iz) = Vx_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T5(ix,iy,iz) - T5(ix,iy,iz - 1))
+    
+                Vx(ix,iy,iz) = Vx_x(ix,iy,iz) + Vx_y(ix,iy,iz) + Vx_z(ix,iy,iz)
+
+
+                Vy_x(ix,iy,iz) = Vy_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T6(ix,iy,iz) - T6(ix - 1,iy,iz))
+
+                Vy_y(ix,iy,iz) = Vy_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T2(ix,iy + 1,iz) - T2(ix,iy,iz))
+
+                Vy_z(ix,iy,iz) = Vy_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T4(ix,iy,iz) - T4(ix,iy,iz - 1))
+
+                Vy(ix,iy,iz) = Vy_x(ix,iy,iz) + Vy_y(ix,iy,iz) + Vy_z(ix,iy,iz)
+
+
+                Vz_x(ix,iy,iz) = Vz_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T5(ix,iy,iz) - T5(ix - 1,iy,iz))
+
+                Vz_y(ix,iy,iz) = Vz_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))
+
+                Vz_z(ix,iy,iz) = Vz_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz))
+
+                Vz(ix,iy,iz) = Vz_x(ix,iy,iz) + Vz_y(ix,iy,iz) + Vz_z(ix,iy,iz)
+
+            END DO
+        END DO
+    END DO
+        
+    IF (procsx .EQ. 0) THEN
+    DO iz = 1, zend
+        DO iy = 1, Ny-2
+            DO ix = 1, xstart-1
+                     
                 Vx_x(ix,iy,iz) = Vx_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
                 w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))
 
@@ -138,11 +183,144 @@ SUBROUTINE v_half_step()
                 w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz))
 
                 Vz(ix,iy,iz) = Vz_x(ix,iy,iz) + Vz_y(ix,iy,iz) + Vz_z(ix,iy,iz)
-                END IF
 
             END DO
         END DO
     END DO
+    ENDIF
+    IF (procsx .EQ. Nprocsx-1) THEN
+    DO iz = 1, zend
+        DO iy = 1, Ny-2
+            DO ix = xend+1, Nx-2
+                     
+                Vx_x(ix,iy,iz) = Vx_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))
+
+                Vx_y(ix,iy,iz) = Vx_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))
+
+                Vx_z(ix,iy,iz) = Vx_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T5(ix,iy,iz) - T5(ix,iy,iz - 1))
+
+                Vx(ix,iy,iz) = Vx_x(ix,iy,iz) + Vx_y(ix,iy,iz) + Vx_z(ix,iy,iz)
+
+
+                Vy_x(ix,iy,iz) = Vy_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T6(ix,iy,iz) - T6(ix - 1,iy,iz))
+
+                Vy_y(ix,iy,iz) = Vy_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T2(ix,iy + 1,iz) - T2(ix,iy,iz))
+
+                Vy_z(ix,iy,iz) = Vy_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T4(ix,iy,iz) - T4(ix,iy,iz - 1))
+
+                Vy(ix,iy,iz) = Vy_x(ix,iy,iz) + Vy_y(ix,iy,iz) + Vy_z(ix,iy,iz)
+
+
+                Vz_x(ix,iy,iz) = Vz_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T5(ix,iy,iz) - T5(ix - 1,iy,iz))
+
+                Vz_y(ix,iy,iz) = Vz_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))
+
+                Vz_z(ix,iy,iz) = Vz_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz))
+
+                Vz(ix,iy,iz) = Vz_x(ix,iy,iz) + Vz_y(ix,iy,iz) + Vz_z(ix,iy,iz)
+
+            END DO
+        END DO
+    END DO
+    ENDIF
+    
+    IF (procsy .EQ. 0) THEN
+    DO iz = 1, zend
+        DO iy = 1, ystart-1
+            DO ix = xstart, xend
+                     
+                Vx_x(ix,iy,iz) = Vx_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))
+
+                Vx_y(ix,iy,iz) = Vx_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))
+
+                Vx_z(ix,iy,iz) = Vx_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T5(ix,iy,iz) - T5(ix,iy,iz - 1))
+
+                Vx(ix,iy,iz) = Vx_x(ix,iy,iz) + Vx_y(ix,iy,iz) + Vx_z(ix,iy,iz)
+
+
+                Vy_x(ix,iy,iz) = Vy_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T6(ix,iy,iz) - T6(ix - 1,iy,iz))
+
+                Vy_y(ix,iy,iz) = Vy_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T2(ix,iy + 1,iz) - T2(ix,iy,iz))
+
+                Vy_z(ix,iy,iz) = Vy_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T4(ix,iy,iz) - T4(ix,iy,iz - 1))
+
+                Vy(ix,iy,iz) = Vy_x(ix,iy,iz) + Vy_y(ix,iy,iz) + Vy_z(ix,iy,iz)
+
+
+                Vz_x(ix,iy,iz) = Vz_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T5(ix,iy,iz) - T5(ix - 1,iy,iz))
+
+                Vz_y(ix,iy,iz) = Vz_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))
+
+                Vz_z(ix,iy,iz) = Vz_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz))
+
+                Vz(ix,iy,iz) = Vz_x(ix,iy,iz) + Vz_y(ix,iy,iz) + Vz_z(ix,iy,iz)
+
+            END DO
+        END DO
+    END DO
+    ENDIF
+    IF (procsy .EQ. Nprocsy-1) THEN
+    DO iz = 1, zend
+        DO iy = yend+1, Ny-2
+            DO ix = xstart, xend
+                     
+                Vx_x(ix,iy,iz) = Vx_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T1(ix + 1,iy,iz) - T1(ix,iy,iz))
+
+                Vx_y(ix,iy,iz) = Vx_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T6(ix,iy,iz) - T6(ix,iy - 1,iz))
+
+                Vx_z(ix,iy,iz) = Vx_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T5(ix,iy,iz) - T5(ix,iy,iz - 1))
+
+                Vx(ix,iy,iz) = Vx_x(ix,iy,iz) + Vx_y(ix,iy,iz) + Vx_z(ix,iy,iz)
+
+
+                Vy_x(ix,iy,iz) = Vy_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T6(ix,iy,iz) - T6(ix - 1,iy,iz))
+
+                Vy_y(ix,iy,iz) = Vy_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T2(ix,iy + 1,iz) - T2(ix,iy,iz))
+
+                Vy_z(ix,iy,iz) = Vy_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T4(ix,iy,iz) - T4(ix,iy,iz - 1))
+
+                Vy(ix,iy,iz) = Vy_x(ix,iy,iz) + Vy_y(ix,iy,iz) + Vy_z(ix,iy,iz)
+
+
+                Vz_x(ix,iy,iz) = Vz_x(ix,iy,iz) * w1(ix,iy,iz,x) + rho_inv * &
+                w2(ix,iy,iz,x) * (T5(ix,iy,iz) - T5(ix - 1,iy,iz))
+
+                Vz_y(ix,iy,iz) = Vz_y(ix,iy,iz) * w1(ix,iy,iz,y) + rho_inv * &
+                w2(ix,iy,iz,y) * (T4(ix,iy,iz) - T4(ix,iy - 1,iz))
+
+                Vz_z(ix,iy,iz) = Vz_z(ix,iy,iz) * w1(ix,iy,iz,z) + rho_inv * &
+                w2(ix,iy,iz,z) * (T3(ix,iy,iz + 1) - T3(ix,iy,iz))
+
+                Vz(ix,iy,iz) = Vz_x(ix,iy,iz) + Vz_y(ix,iy,iz) + Vz_z(ix,iy,iz)
+
+            END DO
+        END DO
+    END DO
+    ENDIF
     
 
 END SUBROUTINE v_half_step
@@ -269,10 +447,10 @@ SUBROUTINE T_half_step()
     END DO
     END DO
 
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
-                thiscell=UROLL3(ix, iy, iz)                
+    
+    DO iz = 1, Nz-2
+        DO iy = 1, Ny-2
+            DO ix = 1, Nx-2
 
                 dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
                 dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)

@@ -143,6 +143,8 @@ INTEGER :: PMLwidth
         
 REAL(Double) :: m, smax
 
+INTEGER :: xstart,xend,ystart,yend,zstart,zend
+
 REAL(Double), DIMENSION(:,:,:,:), POINTER, PUBLIC :: w1
 REAL(Double), DIMENSION(:,:,:,:), POINTER, PUBLIC :: w2
 
