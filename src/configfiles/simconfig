@@ -1,16 +1,21 @@
 ! SIMULATION SET UP
 
-Material: 	bi12geo20
+Material: 	ba2nanb5o15
 
-Nstep:		3500
-Nx:			64
-Ny:			64
+dt: 		6.0e-12
+dx: 		90.000e-9
+dy: 		90.000e-9
+dz: 		90.000e-9
+
+Nstep:		1000
+Data_fstep:		100
+Nx:			100
+Ny:			100
 Nz:			64
-
-dt: 		2.0e-12
-dx: 		9.3333333e-8
-dy: 		9.3333333e-8
-dz: 		9.3333333e-8
 
 Nprocsx:	2
 Nprocsy:	2
+
+PML_width:	20
+smax:			0.0041
+m:			1.55
