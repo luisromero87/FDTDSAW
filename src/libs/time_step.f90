@@ -5,34 +5,119 @@
 ! Created on April 12, 2014, 9:35 PM
 !
 
+
+SUBROUTINE calc_T(ix,iy,iz)
+	USE mpi
+    USE Type_Kinds
+    USE Constants_Module
+    USE Global_Vars
+	IMPLICIT NONE
+    INTEGER ix,iy,iz
+    
+    REAL(Double) :: dVxdx = 0.0_dp
+    REAL(Double) :: dVydy = 0.0_dp
+    REAL(Double) :: dVzdz = 0.0_dp
+    
+    REAL(Double) :: dVzdy = 0.0_dp
+    REAL(Double) :: dVydz = 0.0_dp
+    
+    REAL(Double) :: dVzdx = 0.0_dp
+    REAL(Double) :: dVxdz = 0.0_dp
+    
+    REAL(Double) :: dVydx = 0.0_dp
+    REAL(Double) :: dVxdy = 0.0_dp
+    
+    dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+    dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+    dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+    
+    dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+    dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+    
+    dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+    dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+    
+    dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+    dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+    
+    dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+    dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+    dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+                                  
+    dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+    -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+    dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+    -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+    dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+    -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+    -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+
+    T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+    w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
+    T1_y(ix, iy, iz) = T1_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+    w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
+    T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+    w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
+    T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+
+    T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+    w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
+    T2_y(ix, iy, iz) = T2_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+    w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
+    T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+    w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
+    T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+
+    T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+    w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
+    T3_y(ix, iy, iz) = T3_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+    w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
+    T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+    w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
+    T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+    
+    T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+    w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
+    T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+    w2(ix, iy, iz, z) * c_E(4,4)*dVydz
+    T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
+    dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+    dEy(ix, iy, iz)*e_piezo(2,4)*dt
+
+    T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+    w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
+    T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+    w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
+    T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
+    dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+    dEx(ix, iy, iz)*e_piezo(1,5)*dt
+
+    T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+    w2(ix, iy, iz, x) * c_E(6,6)*dVydx
+    T6_y(ix, iy, iz) = T6_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+    w2(ix, iy, iz, y) * c_E(6,6)*dVxdy
+    T6(ix, iy, iz) = T6_x(ix, iy, iz) + T6_y(ix, iy, iz) - &
+    dEz(ix, iy, iz)*e_piezo(3,6)*dt
+	    
+END SUBROUTINE calc_T
+
 SUBROUTINE v_half_step()
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) :: UROLL3
-
     INTEGER :: ix, iy, iz
-    INTEGER(Long) :: thiscell, anothercell
-    REAL (Double) :: w1total
     
     DO iy=0, Ny-1
 	DO ix=0, Nx-1
-		iz=0
-		thiscell=UROLL3(ix, iy, iz)
-		iz=Nz-2
-		anothercell=UROLL3(ix, iy, iz)
 		T1(ix, iy, 0)=T1(ix, iy, Nz-2)
 		T2(ix, iy, 0)=T2(ix, iy, Nz-2)
 		T3(ix, iy, 0)=T3(ix, iy, Nz-2)
 		T4(ix, iy, 0)=T4(ix, iy, Nz-2)
 		T5(ix, iy, 0)=T5(ix, iy, Nz-2)
 		T6(ix, iy, 0)=T6(ix, iy, Nz-2)
-		iz=Nz-1
-		thiscell=UROLL3(ix, iy, iz)
-		iz=1
-		anothercell=UROLL3(ix, iy, iz)
+        
 		T1(ix, iy, Nz-1)=T1(ix, iy, 1)
 		T2(ix, iy, Nz-1)=T2(ix, iy, 1)
 		T3(ix, iy, Nz-1)=T3(ix, iy, 1)
@@ -332,8 +417,6 @@ SUBROUTINE free_boundary_v()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) :: UROLL3
-
     INTEGER :: ix, iy, iz
 
 
@@ -353,8 +436,6 @@ SUBROUTINE dot_source()
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
-
-    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -383,13 +464,8 @@ SUBROUTINE T_half_step()
     USE Global_Vars
     IMPLICIT NONE
 
-    INTEGER(Long) :: UROLL3
-    INTEGER(Long) :: thiscell, anothercell
-
     INTEGER :: ix, iy, iz
     
-    REAL (Double) :: w1total
-
     REAL(Double) :: dVxdx = 0.0_dp
     REAL(Double) :: dVydy = 0.0_dp
     REAL(Double) :: dVzdz = 0.0_dp
@@ -406,17 +482,10 @@ SUBROUTINE T_half_step()
     
     DO iy=0, Ny-1
 	DO ix=0, Nx-1
-		iz=0
-		thiscell=UROLL3(ix, iy, iz)
-		iz=Nz-2
-		anothercell=UROLL3(ix, iy, iz)
 		Vx(ix, iy, 0)=Vx(ix, iy, Nz-2)
 		Vy(ix, iy, 0)=Vy(ix, iy, Nz-2)
 		Vz(ix, iy, 0)=Vz(ix, iy, Nz-2)
-		iz=Nz-1
-		thiscell=UROLL3(ix, iy, iz)
-		iz=1
-		anothercell=UROLL3(ix, iy, iz)
+        
 		Vx(ix, iy, Nz-1)=Vx(ix, iy, 1)
 		Vy(ix, iy, Nz-1)=Vy(ix, iy, 1)
 		Vz(ix, iy, Nz-1)=Vz(ix, iy, 1)
@@ -446,11 +515,13 @@ SUBROUTINE T_half_step()
         Vz(ix,0_li,iz)= recvbuff_DOWN(2*Nz*Nx+iz*Nx+ix)
     END DO
     END DO
-
     
-    DO iz = 1, Nz-2
-        DO iy = 1, Ny-2
-            DO ix = 1, Nx-2
+    
+    phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
+    
+    DO iz = zstart, zend
+        DO iy = ystart, yend
+            DO ix = xstart, xend
 
                 dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
                 dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
@@ -465,92 +536,136 @@ SUBROUTINE T_half_step()
                 dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
                 dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
                 
-                phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
+                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+                                
+                !Cubic                 
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+
+                !Orthorhombic 2mm
+!				dEx(ix, iy, iz)=(dDx(ix, iy, iz, x)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+!				dEy(ix, iy, iz)=(dDy(ix, iy, iz, x)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+!				dEz(ix, iy, iz)=( dDz(ix, iy, iz, x) &
+!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
+
+                !Cubic 
+                T1(ix, iy, iz) = T1(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)+&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)+&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+
+                T2(ix, iy, iz) = T2(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)+&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)+&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+
+                T3(ix, iy, iz) = T3(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)+&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)+&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+				
+                T4(ix, iy, iz) = T4(ix, iy, iz) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy+&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+
+                T5(ix, iy, iz) = T5(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx+&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+
+                T6(ix, iy, iz) = T6(ix, iy, iz) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx+&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
+                
+                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
+                
+                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
+                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
+                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
+                                   
+                !Orthorhombic 2mm
+!                T1(ix, iy, iz, x) = T1(ix, iy, iz, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(1,1)*(dVxdx)+&
+!                w2(ix, iy, iz, x, y) * c_E(1,2)*(dVydy)+&
+!                w2(ix, iy, iz, x, z) * c_E(1,3)*(dVzdz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+!
+!                T2(ix, iy, iz, x) = T2(ix, iy, iz, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(2,1)*(dVxdx)+&
+!                w2(ix, iy, iz, x, y) * c_E(2,2)*(dVydy)+&
+!                w2(ix, iy, iz, x, z) * c_E(2,3)*(dVzdz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+!
+!                T3(ix, iy, iz, x) = T3(ix, iy, iz, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(3,1)*(dVxdx)+&
+!                w2(ix, iy, iz, x, y) * c_E(3,2)*(dVydy)+&
+!                w2(ix, iy, iz, x, z) * c_E(3,3)*(dVzdz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+!				
+!                T4(ix, iy, iz, x) = T4(ix, iy, iz, x) +&
+!                w2(ix, iy, iz, x, y) * c_E(4,4)*dVzdy+&
+!                w2(ix, iy, iz, x, z) * c_E(4,4)*dVydz - &
+!                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+!
+!                T5(ix, iy, iz, x) = T5(ix, iy, iz, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(5,5)*dVzdx+&
+!                w2(ix, iy, iz, x, z) * c_E(5,5)*dVxdz - &
+!                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+!
+!                T6(ix, iy, iz, x) = T6(ix, iy, iz, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(6,6)*dVydx+&
+!                w2(ix, iy, iz, x, y) * c_E(6,6)*dVxdy
+
+            ENDDO
+        ENDDO
+    ENDDO  
+    
+    DO iz = zend+1, Nz-2
+        DO iy = 1, Ny-2
+            DO ix = 1, Nx-2
+            
+                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+                
+                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+                
+                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+                
+                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
                 
                 dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
                 dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
                 dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
-                
-!                IF (procsx.EQ.(Nprocsx-1)/2 .AND. procsy.EQ.(Nprocsy-1)/2) THEN
-!                IF (ix .EQ. (Nx/2-2)*MOD(Nprocsx-1,2)+Nx/2 .AND. iy .EQ. (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2 .AND. iz .EQ. Nz/2) THEN
-!                  dDx(thiscell)=phase
-!                ENDIF
-!                ENDIF
-                
+                                
                 !Cubic                 
-				dEx(ix, iy, iz)=(dDx(ix, iy, iz)-(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3))*beta_s(1,1)
-				dEy(ix, iy, iz)=(dDy(ix, iy, iz)-(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5))*beta_s(2,2)
-				dEz(ix, iy, iz)=(dDz(ix, iy, iz)-(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6))*beta_s(3,3)
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
 
                 !Orthorhombic 2mm
 !				dEx(thiscell)=(dDx(thiscell)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
 !				dEy(thiscell)=(dDy(thiscell)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
 !				dEz(thiscell)=( dDz(thiscell) &
 !                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
-
-                IF (w1(ix,iy,iz,x) .EQ. 1.0_dp .AND. w1(ix,iy,iz,y) .EQ. 1.0_dp .AND. w1(ix,iy,iz,z) .EQ. 1.0_dp) THEN
-!                cubic 
-                T1(ix, iy, iz) = T1(ix, iy, iz) +&
-                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)+&
-                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)+&
-                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
-
-                T2(ix, iy, iz) = T2(ix, iy, iz) +&
-                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)+&
-                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)+&
-                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
-
-                T3(ix, iy, iz) = T3(ix, iy, iz) +&
-                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)+&
-                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)+&
-                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
-				
-                T4(ix, iy, iz) = T4(ix, iy, iz) +&
-                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy+&
-                w2(ix, iy, iz, z) * c_E(4,4)*dVydz - &
-                dEx(ix, iy, iz)*e_piezo(1,4)*dt
-
-                T5(ix, iy, iz) = T5(ix, iy, iz) +&
-                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx+&
-                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz - &
-                dEy(ix, iy, iz)*e_piezo(2,5)*dt
-
-                T6(ix, iy, iz) = T6(ix, iy, iz) +&
-                w2(ix, iy, iz, x) * c_E(6,6)*dVydx+&
-                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy - &
-                dEz(ix, iy, iz)*e_piezo(3,6)*dt
-!                
-                !Orthorhombic 2mm
-!                T1(thiscell) = T1(thiscell) +&
-!                w2(thiscell, x) * c_E(1,1)*(dVxdx)+&
-!                w2(thiscell, y) * c_E(1,2)*(dVydy)+&
-!                w2(thiscell, z) * c_E(1,3)*(dVzdz) - e_piezo(3,1)*dEz(thiscell)*dt
-!
-!                T2(thiscell) = T2(thiscell) +&
-!                w2(thiscell, x) * c_E(2,1)*(dVxdx)+&
-!                w2(thiscell, y) * c_E(2,2)*(dVydy)+&
-!                w2(thiscell, z) * c_E(2,3)*(dVzdz) - e_piezo(3,2)*dEz(thiscell)*dt
-!
-!                T3(thiscell) = T3(thiscell) +&
-!                w2(thiscell, x) * c_E(3,1)*(dVxdx)+&
-!                w2(thiscell, y) * c_E(3,2)*(dVydy)+&
-!                w2(thiscell, z) * c_E(3,3)*(dVzdz) - e_piezo(3,3)*dEz(thiscell)*dt
-!				
-!                T4(thiscell) = T4(thiscell) +&
-!                w2(thiscell, y) * c_E(4,4)*dVzdy+&
-!                w2(thiscell, z) * c_E(4,4)*dVydz - &
-!                dEy(thiscell)*e_piezo(2,4)*dt
-!
-!                T5(thiscell) = T5(thiscell) +&
-!                w2(thiscell, x) * c_E(5,5)*dVzdx+&
-!                w2(thiscell, z) * c_E(5,5)*dVxdz - &
-!                dEx(thiscell)*e_piezo(1,5)*dt
-!
-!                T6(thiscell) = T6(thiscell) +&
-!                w2(thiscell, x) * c_E(6,6)*dVydx+&
-!                w2(thiscell, y) * c_E(6,6)*dVxdy
                 
-                ELSE
                 !Cubic
                 T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
                 w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
@@ -558,7 +673,7 @@ SUBROUTINE T_half_step()
                 w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
                 T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
                 w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
-                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz)
+                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
 
                 T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
                 w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
@@ -566,7 +681,7 @@ SUBROUTINE T_half_step()
                 w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
                 T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
                 w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
-                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz)
+                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
 
                 T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
                 w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
@@ -574,21 +689,165 @@ SUBROUTINE T_half_step()
                 w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
                 T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
                 w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
-                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz)
+                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
 				
                 T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
                 w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
                 T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
                 w2(ix, iy, iz, z) * c_E(4,4)*dVydz
                 T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
-                dEx(ix, iy, iz)*e_piezo(1,4)*dt
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+                dEy(ix, iy, iz)*e_piezo(2,4)*dt
 
                 T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
                 w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
                 T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
                 w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
                 T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
-                dEy(ix, iy, iz)*e_piezo(2,5)*dt
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+
+                T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx
+                T6_y(ix, iy, iz) = T6_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy
+                T6(ix, iy, iz) = T6_x(ix, iy, iz) + T6_y(ix, iy, iz) - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
+                
+                !Orthorhombic 2mm
+!                T1_x(ix, iy, iz, x) = T1_x(ix, iy, iz, x) * w1(ix, iy, iz, x, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(1,1)*(dVxdx)
+!                T1_y(ix, iy, iz, x) = T1_y(ix, iy, iz, x) * w1(ix, iy, iz, x, y) +&
+!                w2(ix, iy, iz, x, y) * c_E(1,2)*(dVydy)
+!                T1_z(ix, iy, iz, x) = T1_z(ix, iy, iz, x) * w1(ix, iy, iz, x, z) +&
+!                w2(ix, iy, iz, x, z) * c_E(1,3)*(dVzdz)
+!                T1(ix, iy, iz, x) = T1_x(ix, iy, iz, x) + T1_y(ix, iy, iz, x) + T1_z(ix, iy, iz, x) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+!
+!                T2_x(ix, iy, iz, x) = T2_x(ix, iy, iz, x) * w1(ix, iy, iz, x, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(2,1)*(dVxdx)
+!                T2_y(ix, iy, iz, x) = T2_y(ix, iy, iz, x) * w1(ix, iy, iz, x, y) +&
+!                w2(ix, iy, iz, x, y) * c_E(2,2)*(dVydy)
+!                T2_z(ix, iy, iz, x) = T2_z(ix, iy, iz, x) * w1(ix, iy, iz, x, z) +&
+!                w2(ix, iy, iz, x, z) * c_E(2,3)*(dVzdz)
+!                T2(ix, iy, iz, x) = T2_x(ix, iy, iz, x) + T2_y(ix, iy, iz, x) + T2_z(ix, iy, iz, x) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+!
+!                T3_x(ix, iy, iz, x) = T3_x(ix, iy, iz, x) * w1(ix, iy, iz, x, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(3,1)*(dVxdx)
+!                T3_y(ix, iy, iz, x) = T3_y(ix, iy, iz, x) * w1(ix, iy, iz, x, y) +&
+!                w2(ix, iy, iz, x, y) * c_E(3,2)*(dVydy)
+!                T3_z(ix, iy, iz, x) = T3_z(ix, iy, iz, x) * w1(ix, iy, iz, x, z) +&
+!                w2(ix, iy, iz, x, z) * c_E(3,3)*(dVzdz)
+!                T3(ix, iy, iz, x) = T3_x(ix, iy, iz, x) + T3_y(ix, iy, iz, x) + T3_z(ix, iy, iz, x) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+!				
+!                T4_y(ix, iy, iz, x) = T4_y(ix, iy, iz, x) * w1(ix, iy, iz, x, y) +&
+!                w2(ix, iy, iz, x, y) * c_E(4,4)*dVzdy
+!                T4_z(ix, iy, iz, x) = T4_z(ix, iy, iz, x) * w1(ix, iy, iz, x, z) +&
+!                w2(ix, iy, iz, x, z) * c_E(4,4)*dVydz
+!                T4(ix, iy, iz, x) = T4_y(ix, iy, iz, x) + T4_z(ix, iy, iz, x) - &
+!                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+!
+!                T5_x(ix, iy, iz, x) = T5_x(ix, iy, iz, x) * w1(ix, iy, iz, x, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(5,5)*dVzdx
+!                T5_z(ix, iy, iz, x) = T5_z(ix, iy, iz, x) * w1(ix, iy, iz, x, z) +&
+!                w2(ix, iy, iz, x, z) * c_E(5,5)*dVxdz
+!                T5(ix, iy, iz, x) = T5_x(ix, iy, iz, x) + T5_z(ix, iy, iz, x) - &
+!                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+!
+!                T6_x(ix, iy, iz, x) = T6_x(ix, iy, iz, x) * w1(ix, iy, iz, x, x) +&
+!                w2(ix, iy, iz, x, x) * c_E(6,6)*dVydx
+!                T6_y(ix, iy, iz, x) = T6_y(ix, iy, iz, x) * w1(ix, iy, iz, x, y) +&
+!                w2(ix, iy, iz, x, y) * c_E(6,6)*dVxdy
+!                T6(ix, iy, iz, x) = T6_x(ix, iy, iz, x) + T6_y(ix, iy, iz, x)
+                
+                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
+                
+                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
+                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
+                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
+
+            END DO
+        END DO
+    END DO
+    
+    IF (procsx .EQ. 0) THEN
+    DO iz = 1, zend
+        DO iy = 1, Ny-2
+            DO ix = 1, xstart-1
+            
+                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+                
+                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+                
+                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+                
+                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+                
+                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+                                
+                !Cubic                 
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+
+                !Orthorhombic 2mm
+!				dEx(thiscell)=(dDx(thiscell)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+!				dEy(thiscell)=(dDy(thiscell)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+!				dEz(thiscell)=( dDz(thiscell) &
+!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
+                
+                !Cubic
+                T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
+                T1_y(ix, iy, iz) = T1_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
+                T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
+                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+
+                T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
+                T2_y(ix, iy, iz) = T2_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
+                T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
+                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+
+                T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
+                T3_y(ix, iy, iz) = T3_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
+                T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
+                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+				
+                T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
+                T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz
+                T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+
+                T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
+                T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
+                T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+                dEx(ix, iy, iz)*e_piezo(1,5)*dt
 
                 T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
                 w2(ix, iy, iz, x) * c_E(6,6)*dVydx
@@ -641,7 +900,6 @@ SUBROUTINE T_half_step()
 !                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
 !                w2(thiscell, y) * c_E(6,6)*dVxdy
 !                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell)
-                END IF
                 
                 Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
                 Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
@@ -654,6 +912,435 @@ SUBROUTINE T_half_step()
             END DO
         END DO
     END DO
+    ENDIF
+    
+    IF (procsx .EQ. Nprocsx-1) THEN
+    DO iz = 1, zend
+        DO iy = 1, Ny-2
+            DO ix = xend+1, Nx-2
+            
+                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+                
+                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+                
+                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+                
+                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+                
+                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+                                
+                !Cubic                 
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+
+                !Orthorhombic 2mm
+!				dEx(thiscell)=(dDx(thiscell)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+!				dEy(thiscell)=(dDy(thiscell)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+!				dEz(thiscell)=( dDz(thiscell) &
+!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
+                
+                !Cubic
+                T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
+                T1_y(ix, iy, iz) = T1_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
+                T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
+                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+
+                T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
+                T2_y(ix, iy, iz) = T2_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
+                T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
+                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+
+                T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
+                T3_y(ix, iy, iz) = T3_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
+                T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
+                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+				
+                T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
+                T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz
+                T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+
+                T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
+                T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
+                T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+
+                T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx
+                T6_y(ix, iy, iz) = T6_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy
+                T6(ix, iy, iz) = T6_x(ix, iy, iz) + T6_y(ix, iy, iz) - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
+                
+                !Orthorhombic 2mm
+!                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(1,1)*(dVxdx)
+!                T1_y(thiscell) = T1_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(1,2)*(dVydy)
+!                T1_z(thiscell) = T1_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(1,3)*(dVzdz)
+!                T1(thiscell) = T1_x(thiscell) + T1_y(thiscell) + T1_z(thiscell) - e_piezo(3,1)*dEz(thiscell)*dt
+!
+!                T2_x(thiscell) = T2_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(2,1)*(dVxdx)
+!                T2_y(thiscell) = T2_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(2,2)*(dVydy)
+!                T2_z(thiscell) = T2_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(2,3)*(dVzdz)
+!                T2(thiscell) = T2_x(thiscell) + T2_y(thiscell) + T2_z(thiscell) - e_piezo(3,2)*dEz(thiscell)*dt
+!
+!                T3_x(thiscell) = T3_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(3,1)*(dVxdx)
+!                T3_y(thiscell) = T3_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(3,2)*(dVydy)
+!                T3_z(thiscell) = T3_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(3,3)*(dVzdz)
+!                T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell) - e_piezo(3,3)*dEz(thiscell)*dt
+!				
+!                T4_y(thiscell) = T4_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(4,4)*dVzdy
+!                T4_z(thiscell) = T4_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(4,4)*dVydz
+!                T4(thiscell) = T4_y(thiscell) + T4_z(thiscell) - &
+!                dEy(thiscell)*e_piezo(2,4)*dt
+!
+!                T5_x(thiscell) = T5_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(5,5)*dVzdx
+!                T5_z(thiscell) = T5_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(5,5)*dVxdz
+!                T5(thiscell) = T5_x(thiscell) + T5_z(thiscell) - &
+!                dEx(thiscell)*e_piezo(1,5)*dt
+!
+!                T6_x(thiscell) = T6_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(6,6)*dVydx
+!                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(6,6)*dVxdy
+!                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell)
+                
+                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
+                
+                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
+                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
+                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
+
+            END DO
+        END DO
+    END DO
+    ENDIF
+    
+    IF (procsy .EQ. 0) THEN
+    DO iz = 1, zend
+        DO iy = 1, ystart-1
+            DO ix = xstart, xend
+            
+                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+                
+                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+                
+                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+                
+                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+                
+                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+                                
+                !Cubic                 
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+
+                !Orthorhombic 2mm
+!				dEx(thiscell)=(dDx(thiscell)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+!				dEy(thiscell)=(dDy(thiscell)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+!				dEz(thiscell)=( dDz(thiscell) &
+!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
+                
+                !Cubic
+                T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
+                T1_y(ix, iy, iz) = T1_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
+                T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
+                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+
+                T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
+                T2_y(ix, iy, iz) = T2_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
+                T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
+                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+
+                T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
+                T3_y(ix, iy, iz) = T3_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
+                T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
+                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+				
+                T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
+                T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz
+                T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+
+                T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
+                T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
+                T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+
+                T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx
+                T6_y(ix, iy, iz) = T6_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy
+                T6(ix, iy, iz) = T6_x(ix, iy, iz) + T6_y(ix, iy, iz) - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
+                
+                !Orthorhombic 2mm
+!                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(1,1)*(dVxdx)
+!                T1_y(thiscell) = T1_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(1,2)*(dVydy)
+!                T1_z(thiscell) = T1_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(1,3)*(dVzdz)
+!                T1(thiscell) = T1_x(thiscell) + T1_y(thiscell) + T1_z(thiscell) - e_piezo(3,1)*dEz(thiscell)*dt
+!
+!                T2_x(thiscell) = T2_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(2,1)*(dVxdx)
+!                T2_y(thiscell) = T2_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(2,2)*(dVydy)
+!                T2_z(thiscell) = T2_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(2,3)*(dVzdz)
+!                T2(thiscell) = T2_x(thiscell) + T2_y(thiscell) + T2_z(thiscell) - e_piezo(3,2)*dEz(thiscell)*dt
+!
+!                T3_x(thiscell) = T3_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(3,1)*(dVxdx)
+!                T3_y(thiscell) = T3_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(3,2)*(dVydy)
+!                T3_z(thiscell) = T3_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(3,3)*(dVzdz)
+!                T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell) - e_piezo(3,3)*dEz(thiscell)*dt
+!				
+!                T4_y(thiscell) = T4_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(4,4)*dVzdy
+!                T4_z(thiscell) = T4_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(4,4)*dVydz
+!                T4(thiscell) = T4_y(thiscell) + T4_z(thiscell) - &
+!                dEy(thiscell)*e_piezo(2,4)*dt
+!
+!                T5_x(thiscell) = T5_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(5,5)*dVzdx
+!                T5_z(thiscell) = T5_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(5,5)*dVxdz
+!                T5(thiscell) = T5_x(thiscell) + T5_z(thiscell) - &
+!                dEx(thiscell)*e_piezo(1,5)*dt
+!
+!                T6_x(thiscell) = T6_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(6,6)*dVydx
+!                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(6,6)*dVxdy
+!                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell)
+                
+                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
+                
+                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
+                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
+                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
+
+            END DO
+        END DO
+    END DO
+    ENDIF
+    IF (procsy .EQ. Nprocsy-1) THEN
+    DO iz = 1, zend
+        DO iy = yend+1, Ny-2
+            DO ix = xstart, xend
+            
+                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+                
+                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+                
+                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+                
+                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+                
+                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+                                
+                !Cubic                 
+				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+
+                !Orthorhombic 2mm
+!				dEx(thiscell)=(dDx(thiscell)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+!				dEy(thiscell)=(dDy(thiscell)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+!				dEz(thiscell)=( dDz(thiscell) &
+!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz) )*beta_s(3,3)
+                
+                !Cubic
+                T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
+                T1_y(ix, iy, iz) = T1_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)
+                T1_z(ix, iy, iz) = T1_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(1,3)*(dVzdz)
+                T1(ix, iy, iz) = T1_x(ix, iy, iz) + T1_y(ix, iy, iz) + T1_z(ix, iy, iz) - e_piezo(3,1)*dEz(ix, iy, iz)*dt
+
+                T2_x(ix, iy, iz) = T2_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(2,1)*(dVxdx)
+                T2_y(ix, iy, iz) = T2_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(2,2)*(dVydy)
+                T2_z(ix, iy, iz) = T2_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(2,3)*(dVzdz)
+                T2(ix, iy, iz) = T2_x(ix, iy, iz) + T2_y(ix, iy, iz) + T2_z(ix, iy, iz) - e_piezo(3,2)*dEz(ix, iy, iz)*dt
+
+                T3_x(ix, iy, iz) = T3_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)
+                T3_y(ix, iy, iz) = T3_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)
+                T3_z(ix, iy, iz) = T3_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz)
+                T3(ix, iy, iz) = T3_x(ix, iy, iz) + T3_y(ix, iy, iz) + T3_z(ix, iy, iz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
+				
+                T4_y(ix, iy, iz) = T4_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(4,4)*dVzdy
+                T4_z(ix, iy, iz) = T4_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(4,4)*dVydz
+                T4(ix, iy, iz) = T4_y(ix, iy, iz) + T4_z(ix, iy, iz) - &
+                dEx(ix, iy, iz)*e_piezo(1,4)*dt - &
+                dEy(ix, iy, iz)*e_piezo(2,4)*dt
+
+                T5_x(ix, iy, iz) = T5_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(5,5)*dVzdx
+                T5_z(ix, iy, iz) = T5_z(ix, iy, iz) * w1(ix, iy, iz, z) +&
+                w2(ix, iy, iz, z) * c_E(5,5)*dVxdz
+                T5(ix, iy, iz) = T5_x(ix, iy, iz) + T5_z(ix, iy, iz) - &
+                dEy(ix, iy, iz)*e_piezo(2,5)*dt - &
+                dEx(ix, iy, iz)*e_piezo(1,5)*dt
+
+                T6_x(ix, iy, iz) = T6_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
+                w2(ix, iy, iz, x) * c_E(6,6)*dVydx
+                T6_y(ix, iy, iz) = T6_y(ix, iy, iz) * w1(ix, iy, iz, y) +&
+                w2(ix, iy, iz, y) * c_E(6,6)*dVxdy
+                T6(ix, iy, iz) = T6_x(ix, iy, iz) + T6_y(ix, iy, iz) - &
+                dEz(ix, iy, iz)*e_piezo(3,6)*dt
+                
+                !Orthorhombic 2mm
+!                T1_x(thiscell) = T1_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(1,1)*(dVxdx)
+!                T1_y(thiscell) = T1_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(1,2)*(dVydy)
+!                T1_z(thiscell) = T1_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(1,3)*(dVzdz)
+!                T1(thiscell) = T1_x(thiscell) + T1_y(thiscell) + T1_z(thiscell) - e_piezo(3,1)*dEz(thiscell)*dt
+!
+!                T2_x(thiscell) = T2_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(2,1)*(dVxdx)
+!                T2_y(thiscell) = T2_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(2,2)*(dVydy)
+!                T2_z(thiscell) = T2_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(2,3)*(dVzdz)
+!                T2(thiscell) = T2_x(thiscell) + T2_y(thiscell) + T2_z(thiscell) - e_piezo(3,2)*dEz(thiscell)*dt
+!
+!                T3_x(thiscell) = T3_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(3,1)*(dVxdx)
+!                T3_y(thiscell) = T3_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(3,2)*(dVydy)
+!                T3_z(thiscell) = T3_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(3,3)*(dVzdz)
+!                T3(thiscell) = T3_x(thiscell) + T3_y(thiscell) + T3_z(thiscell) - e_piezo(3,3)*dEz(thiscell)*dt
+!				
+!                T4_y(thiscell) = T4_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(4,4)*dVzdy
+!                T4_z(thiscell) = T4_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(4,4)*dVydz
+!                T4(thiscell) = T4_y(thiscell) + T4_z(thiscell) - &
+!                dEy(thiscell)*e_piezo(2,4)*dt
+!
+!                T5_x(thiscell) = T5_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(5,5)*dVzdx
+!                T5_z(thiscell) = T5_z(thiscell) * w1(thiscell, z) +&
+!                w2(thiscell, z) * c_E(5,5)*dVxdz
+!                T5(thiscell) = T5_x(thiscell) + T5_z(thiscell) - &
+!                dEx(thiscell)*e_piezo(1,5)*dt
+!
+!                T6_x(thiscell) = T6_x(thiscell) * w1(thiscell, x) +&
+!                w2(thiscell, x) * c_E(6,6)*dVydx
+!                T6_y(thiscell) = T6_y(thiscell) * w1(thiscell, y) +&
+!                w2(thiscell, y) * c_E(6,6)*dVxdy
+!                T6(thiscell) = T6_x(thiscell) + T6_y(thiscell)
+                
+                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
+                
+                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
+                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
+                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
+
+            END DO
+        END DO
+    END DO
+    ENDIF
     
 END SUBROUTINE T_half_step
 
@@ -663,8 +1350,6 @@ SUBROUTINE free_boundary_T()
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
-
-    INTEGER(Long) :: UROLL3
 
     INTEGER :: ix, iy, iz
 
@@ -688,7 +1373,6 @@ SUBROUTINE share_v()
     USE Constants_Module
     USE Global_Vars
 	IMPLICIT NONE
-	INTEGER(Long) :: UROLL3
 	INTEGER(Short) UROLLPROC
 	INTEGER :: ix, iy, iz, nextprocid
     
@@ -743,7 +1427,6 @@ SUBROUTINE share_T()
     USE Constants_Module
     USE Global_Vars
 	IMPLICIT NONE
-	INTEGER(Long) :: UROLL3
 	INTEGER(Short) UROLLPROC
 	INTEGER :: ix, iy, iz, nextprocid
 	

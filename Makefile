@@ -37,9 +37,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/type_kinds.o \
 	${OBJECTDIR}/libs/constants_module.o \
 	${OBJECTDIR}/libs/global_vars.o \
-	${OBJECTDIR}/libs/read_input_param.o \
-	${OBJECTDIR}/libs/uroll3.o \
-	${OBJECTDIR}/libs/load_material.o \
 	${OBJECTDIR}/libs/write_to_vtk.o \
 	${OBJECTDIR}/libs/time_step.o \
 	${OBJECTDIR}/libs/Lib_FDTD_SAW.o \

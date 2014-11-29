@@ -16,8 +16,8 @@ PUBLIC :: load_material
 PUBLIC :: SETUP_MPI_VARS
 PUBLIC :: PML_weights
 PUBLIC :: load_D0
-!PUBLIC :: share_v
-!PUBLIC :: share_T
+PUBLIC :: share_v
+PUBLIC :: share_T
 !PUBLIC :: open_vtk_file
 !PUBLIC :: write_free_surface
 !PUBLIC :: write_volume_v
@@ -27,6 +27,16 @@ PUBLIC :: load_D0
 PUBLIC :: Get_Total_Kinetic_Energy
 PUBLIC :: Get_Total_Strain_Energy
 PUBLIC :: Get_Total_Electric_Energy
+
+INTERFACE
+        SUBROUTINE share_v()
+            IMPLICIT NONE
+        END SUBROUTINE share_v
+        
+        SUBROUTINE share_T()
+            IMPLICIT NONE
+        END SUBROUTINE share_T
+ENDINTERFACE
 
 CONTAINS
 

@@ -9,22 +9,6 @@ PROGRAM acousticwaves
 
     INTERFACE
       
-        SUBROUTINE share_v()
-	        USE MPI
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE share_v
-        
-        SUBROUTINE share_T()
-	        USE MPI
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE share_T
-
         SUBROUTINE open_vtk_file(outfile)
             USE Type_Kinds
             USE Constants_Module
@@ -75,10 +59,6 @@ PROGRAM acousticwaves
                 
     END INTERFACE
 
-    !Functions
-    INTEGER(Long) :: UROLL3
-    INTEGER(Short) :: UROLLPROC
-!     DOUBLE PRECISION MPI_WTIME()
     
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
     CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
