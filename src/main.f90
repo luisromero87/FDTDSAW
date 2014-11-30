@@ -63,7 +63,7 @@ PROGRAM acousticwaves
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
     CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
     
-    CHARACTER(LEN = 5) :: Debug = 'True' 
+    CHARACTER(LEN = 5) :: Debug = 'True', zper='False'
 
     INTEGER :: st
 
@@ -137,21 +137,19 @@ PROGRAM acousticwaves
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     TIME1=MPI_WTIME()
     
-    OPEN(UNIT=31, FILE='outputdata/U_k.dat', ACTION="write", STATUS="replace")
+    OPEN(UNIT=31, FILE='outputdata/U_total.dat', ACTION="write", STATUS="replace")
 
     DO step = 1, Nstep
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_T()
-        CALL v_half_step()
-!~         CALL free_boundary_v()
+        CALL v_half_step(zper=zper)
         CALL dot_source()
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
-        CALL T_half_step()
+        CALL T_half_step(zper=zper)
         CALL Get_Total_Kinetic_Energy()
         CALL Get_Total_Strain_Energy()
         CALL Get_Total_Electric_Energy()
-!~         CALL free_boundary_T()
         IF (MOD(STEP, 10) .EQ. 0) THEN
             CALL xzplane()
             1000 format('free_surface', i3.3, '_'i3.3, '.vtk')

@@ -222,7 +222,7 @@ SUBROUTINE xzplane()
 	IF (procsy.EQ.(Nprocsy-1)/2) THEN
 	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
     
-        WRITE(outfile, '(A,i4.4,A,i4.4,A)') 'v_yzplane_',me,'_',step/100,'.vtk' 
+        WRITE(outfile, '(A,i4.4,A,i4.4,A)') 'v_yzplane_',me,'_',step/10,'.vtk' 
         
         2000 format(a)
         3000 format('DIMENSIONS ',i4,i4,i4)

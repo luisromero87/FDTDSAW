@@ -6,7 +6,7 @@
 !
 
 
-SUBROUTINE calc_v(xi,xf,yi,yf,zi,zf)
+SUBROUTINE calc_v(xi, xf, yi, yf, zi, zf)
 	USE mpi
     USE Type_Kinds
     USE Constants_Module
@@ -60,7 +60,7 @@ SUBROUTINE calc_v(xi,xf,yi,yf,zi,zf)
 	    
 END SUBROUTINE calc_v
 
-SUBROUTINE calc_T(xi,xf,yi,yf,zi,zf)
+SUBROUTINE calc_T(xi, xf, yi, yf, zi, zf)
 	USE mpi
     USE Type_Kinds
     USE Constants_Module
@@ -164,31 +164,41 @@ SUBROUTINE calc_T(xi,xf,yi,yf,zi,zf)
 	    
 END SUBROUTINE calc_T
 
-SUBROUTINE v_half_step()
+SUBROUTINE v_half_step(zper)
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
+    
+    CHARACTER(LEN=*), OPTIONAL :: zper
 
     INTEGER :: ix, iy, iz
+    LOGICAL :: flag = .False.
     
-    DO iy=0, Ny-1
-	DO ix=0, Nx-1
-		T1(ix, iy, 0)=T1(ix, iy, Nz-2)
-		T2(ix, iy, 0)=T2(ix, iy, Nz-2)
-		T3(ix, iy, 0)=T3(ix, iy, Nz-2)
-		T4(ix, iy, 0)=T4(ix, iy, Nz-2)
-		T5(ix, iy, 0)=T5(ix, iy, Nz-2)
-		T6(ix, iy, 0)=T6(ix, iy, Nz-2)
-        
-		T1(ix, iy, Nz-1)=T1(ix, iy, 1)
-		T2(ix, iy, Nz-1)=T2(ix, iy, 1)
-		T3(ix, iy, Nz-1)=T3(ix, iy, 1)
-		T4(ix, iy, Nz-1)=T4(ix, iy, 1)
-		T5(ix, iy, Nz-1)=T5(ix, iy, 1)
-		T6(ix, iy, Nz-1)=T6(ix, iy, 1)
-    END DO
-    END DO
+    IF (PRESENT(zper)) THEN
+        IF (zper .EQ. 'True') flag = .True.
+    ENDIF
+    
+    IF (flag .EQV. .True.) THEN
+        DO iy=0, Ny-1
+        DO ix=0, Nx-1
+            T1(ix, iy, 0)=T1(ix, iy, Nz-2)
+            T2(ix, iy, 0)=T2(ix, iy, Nz-2)
+            T3(ix, iy, 0)=T3(ix, iy, Nz-2)
+            T4(ix, iy, 0)=T4(ix, iy, Nz-2)
+            T5(ix, iy, 0)=T5(ix, iy, Nz-2)
+            T6(ix, iy, 0)=T6(ix, iy, Nz-2)
+            
+            T1(ix, iy, Nz-1)=T1(ix, iy, 1)
+            T2(ix, iy, Nz-1)=T2(ix, iy, 1)
+            T3(ix, iy, Nz-1)=T3(ix, iy, 1)
+            T4(ix, iy, Nz-1)=T4(ix, iy, 1)
+            T5(ix, iy, Nz-1)=T5(ix, iy, 1)
+            T6(ix, iy, Nz-1)=T6(ix, iy, 1)
+        END DO
+        END DO
+    ENDIF
+    
         
     CALL MPI_WAITALL(4, reqs, stats, ierr)
     
@@ -248,14 +258,12 @@ SUBROUTINE v_half_step()
             ENDDO
         ENDDO
     ENDDO
-    
 
     CALL calc_V(1, Nx-2, 1, Ny-2, zend+1, Nz-2)
     IF (procsx .EQ. 0) CALL calc_v(1, xstart-1, 1, Ny-2, 1, zend)
     IF (procsx .EQ. Nprocsx-1) CALL calc_v(xend+1, Nx-2, 1, Ny-2, 1, zend)
     IF (procsy .EQ. 0) CALL calc_v(xstart, xend, 1, ystart-1, 1, zend)
     IF (procsy .EQ. Nprocsy-1) CALL calc_v(xstart, xend, yend+1, Ny-2, 1, zend)
-    
 
 END SUBROUTINE v_half_step
 
@@ -268,13 +276,13 @@ SUBROUTINE free_boundary_v()
 
     INTEGER :: ix, iy, iz
 
-
     iz = 1
     DO iy = 1, Ny - 2
         DO ix = 1, Nx - 2
             Vz(ix, iy, iz - 1) = Vz(ix, iy, iz)+(dz(iz)/c_E(3,3))*(&
             c_E(3,1)/dx(ix) * (Vx(ix, iy, iz) - Vx(ix - 1, iy, iz))+&
-            c_E(3,2)/dy(iy) * (Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)))
+            c_E(3,2)/dy(iy) * (Vy(ix, iy, iz) - Vy(ix, iy - 1, iz))&
+            -e_piezo(3,3)*dEz(ix, iy, iz))
         END DO
     END DO
     
@@ -307,11 +315,12 @@ SUBROUTINE dot_source()
 	
 END SUBROUTINE dot_source
 
-SUBROUTINE T_half_step()
+SUBROUTINE T_half_step(zper)
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
     IMPLICIT NONE
+    CHARACTER(LEN=*), OPTIONAL :: zper
 
     INTEGER :: ix, iy, iz
     
@@ -327,20 +336,27 @@ SUBROUTINE T_half_step()
     
     REAL(Double) :: dVydx = 0.0_dp
     REAL(Double) :: dVxdy = 0.0_dp
+
+    LOGICAL :: flag = .False.
     
+    IF (PRESENT(zper)) THEN
+        IF (zper .EQ. 'True') flag = .True.
+    ENDIF
     
-    DO iy=0, Ny-1
-	DO ix=0, Nx-1
-		Vx(ix, iy, 0)=Vx(ix, iy, Nz-2)
-		Vy(ix, iy, 0)=Vy(ix, iy, Nz-2)
-		Vz(ix, iy, 0)=Vz(ix, iy, Nz-2)
-        
-		Vx(ix, iy, Nz-1)=Vx(ix, iy, 1)
-		Vy(ix, iy, Nz-1)=Vy(ix, iy, 1)
-		Vz(ix, iy, Nz-1)=Vz(ix, iy, 1)
-    END DO
-    END DO
-    
+    IF (flag .EQV. .True.) THEN
+        DO iy=0, Ny-1
+        DO ix=0, Nx-1
+            Vx(ix, iy, 0)=Vx(ix, iy, Nz-2)
+            Vy(ix, iy, 0)=Vy(ix, iy, Nz-2)
+            Vz(ix, iy, 0)=Vz(ix, iy, Nz-2)
+            
+            Vx(ix, iy, Nz-1)=Vx(ix, iy, 1)
+            Vy(ix, iy, Nz-1)=Vy(ix, iy, 1)
+            Vz(ix, iy, Nz-1)=Vz(ix, iy, 1)
+        END DO
+        END DO
+    ENDIF
+       
     CALL MPI_WAITALL(4, reqs, stats, ierr)
     
     DO iz=0, Nz-1
@@ -365,6 +381,7 @@ SUBROUTINE T_half_step()
     END DO
     END DO
     
+    IF (flag .EQV. .False.) CALL free_boundary_v()
     
     phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
     
@@ -440,13 +457,14 @@ SUBROUTINE T_half_step()
             ENDDO
         ENDDO
     ENDDO  
-    
 
     CALL calc_T(1, Nx-2, 1, Ny-2, zend+1, Nz-2)
     IF (procsx .EQ. 0) CALL calc_T(1, xstart-1, 1, Ny-2, 1, zend)
     IF (procsx .EQ. Nprocsx-1) CALL calc_T(xend+1, Nx-2, 1, Ny-2, 1, zend)
     IF (procsy .EQ. 0) CALL calc_T(xstart, xend, 1, ystart-1, 1, zend)
     IF (procsy .EQ. Nprocsy-1) CALL calc_T(xstart, xend, yend+1, Ny-2, 1, zend)
+    
+    IF (flag .EQV. .False.) CALL free_boundary_T()
     
 END SUBROUTINE T_half_step
 
@@ -459,7 +477,6 @@ SUBROUTINE free_boundary_T()
 
     INTEGER :: ix, iy, iz
 
-
     iz = 1
     DO iy = 1, Ny - 2
         DO ix = 1, Nx - 2
@@ -468,7 +485,6 @@ SUBROUTINE free_boundary_T()
             T4(ix, iy, iz - 1) = -T4(ix, iy, iz)
         END DO
     END DO
-
 
 END SUBROUTINE free_boundary_T
 

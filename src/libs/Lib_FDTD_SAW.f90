@@ -18,6 +18,8 @@ PUBLIC :: PML_weights
 PUBLIC :: load_D0
 PUBLIC :: share_v
 PUBLIC :: share_T
+PUBLIC :: v_half_step
+PUBLIC :: T_half_step
 !PUBLIC :: open_vtk_file
 !PUBLIC :: write_free_surface
 !PUBLIC :: write_volume_v
@@ -36,6 +38,22 @@ INTERFACE
         SUBROUTINE share_T()
             IMPLICIT NONE
         END SUBROUTINE share_T
+        
+        SUBROUTINE v_half_step(zper)
+!            USE Type_Kinds
+!            USE Constants_Module
+!            USE Global_Vars
+            IMPLICIT NONE
+            CHARACTER(LEN=*), OPTIONAL :: zper
+        ENDSUBROUTINE v_half_step
+        
+        SUBROUTINE T_half_step(zper)
+!            USE Type_Kinds
+!            USE Constants_Module
+!            USE Global_Vars
+            IMPLICIT NONE
+            CHARACTER(LEN=*), OPTIONAL :: zper
+        ENDSUBROUTINE T_half_step
 ENDINTERFACE
 
 CONTAINS
@@ -556,9 +574,9 @@ SUBROUTINE Get_Total_Kinetic_Energy()
     INTEGER(Long) :: thiscell
     
     U_k = 0
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
+    DO iz = zstart, zend
+        DO iy = ystart, yend
+            DO ix = xstart, xend
                 thiscell=UROLL3(ix, iy, iz)
                 U_k=U_k+Vx(ix, iy, iz)**2+Vy(ix, iy, iz)**2+Vz(ix, iy, iz)**2
             END DO
@@ -578,9 +596,9 @@ SUBROUTINE Get_Total_Strain_Energy()
     REAL(Double) :: aux
     
     U_s = 0
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
+    DO iz = zstart, zend
+        DO iy = ystart, yend
+            DO ix = xstart, xend
                 thiscell=UROLL3(ix, iy, iz)
                 S1 = s_E(1,1)*T1(ix, iy, iz)+s_E(1,2)*T2(ix, iy, iz)+s_E(1,3)*T3(ix, iy, iz)
                 S2 = s_E(2,1)*T1(ix, iy, iz)+s_E(2,2)*T2(ix, iy, iz)+s_E(2,3)*T3(ix, iy, iz)
@@ -611,9 +629,9 @@ SUBROUTINE Get_Total_Electric_Energy()
     INTEGER(Long) :: thiscell
     
     U_e = 0
-    DO iz = 1, Nz - 2
-        DO iy = 1, Ny - 2
-            DO ix = 1, Nx - 2
+    DO iz = zstart, zend
+        DO iy = ystart, yend
+            DO ix = xstart, xend
                 thiscell=UROLL3(ix, iy, iz)
                 U_e = U_e + Ex(ix, iy, iz)**2 + Ey(ix, iy, iz)**2 + Ez(ix, iy, iz)**2
             END DO
