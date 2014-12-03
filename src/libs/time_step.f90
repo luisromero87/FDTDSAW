@@ -282,7 +282,7 @@ SUBROUTINE free_boundary_v()
             Vz(ix, iy, iz - 1) = Vz(ix, iy, iz)+(dz(iz)/c_E(3,3))*(&
             c_E(3,1)/dx(ix) * (Vx(ix, iy, iz) - Vx(ix - 1, iy, iz))+&
             c_E(3,2)/dy(iy) * (Vy(ix, iy, iz) - Vy(ix, iy - 1, iz))&
-            -e_piezo(3,3)*dEz(ix, iy, iz))
+            -e_piezo(3,3)*dEz(ix, iy, iz)*0)
         END DO
     END DO
     
@@ -299,7 +299,7 @@ SUBROUTINE dot_source()
 	IF (procsx.EQ.(Nprocsx-1)/2 .AND. procsy.EQ.(Nprocsy-1)/2) THEN
 	    ix = (Nx/2-2)*MOD(Nprocsx-1,2)+Nx/2
 	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
-	    iz = Nz/2
+	    iz = 1
 !~ 	write(*,*) me, ix, iy, iz
 ! 		DO iz=1, Nz-2
 		    Vz(ix, iy, iz) = Vz(ix, iy, iz) + &
@@ -381,9 +381,40 @@ SUBROUTINE T_half_step(zper)
     END DO
     END DO
     
-    IF (flag .EQV. .False.) CALL free_boundary_v()
-    
     phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
+    
+!    DO iz = 1, Nz-2
+!    DO iy = 1, Ny-2
+!    DO ix = 1, Nx-2
+!                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
+!                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
+!                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
+!                
+!                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
+!                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
+!                
+!                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
+!                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
+!                
+!                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
+!                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+!                
+!                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+!                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+!                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+!                                            
+!				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+!                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
+!				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+!                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
+!				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+!                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
+!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)    
+!    ENDDO
+!    ENDDO
+!    ENDDO
+    
+    IF (flag .EQV. .False.) CALL free_boundary_v()
     
     DO iz = zstart, zend
         DO iy = ystart, yend

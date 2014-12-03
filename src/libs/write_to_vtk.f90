@@ -123,7 +123,7 @@ SUBROUTINE write_free_surface (outfile, data_name)
       WRITE(12,4000) iy*deltay+offsety
     END DO
     WRITE(12,*) "Z_COORDINATES", 1, "double"
-    DO iz = Nz/2, Nz/2
+    DO iz = 1, 1
       WRITE(12,4000) iz*deltaz
     END DO
     
@@ -135,7 +135,7 @@ SUBROUTINE write_free_surface (outfile, data_name)
     WRITE(12,*) "POINT_DATA", (Nx-2)*(Ny-2)*(1)
     WRITE(12,*) "SCALARS "//data_name//" double 3"
     WRITE(12,*) "LOOKUP_TABLE default"
-    iz = Nz/2
+    iz = 1
     DO iy = 1, Ny-2
 	DO ix = 1, Nx-2
 	    write(12,5000) REAL(Vx(ix,iy,iz),Single),REAL(Vy(ix,iy,iz),Single),REAL(Vz(ix,iy,iz),Single)
@@ -222,7 +222,7 @@ SUBROUTINE xzplane()
 	IF (procsy.EQ.(Nprocsy-1)/2) THEN
 	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
     
-        WRITE(outfile, '(A,i4.4,A,i4.4,A)') 'v_yzplane_',me,'_',step/10,'.vtk' 
+        WRITE(outfile, '(A,i4.4,A,i4.4,A)') 'v_yzplane_',me,'_',step/2,'.vtk' 
         
         2000 format(a)
         3000 format('DIMENSIONS ',i4,i4,i4)
