@@ -59,27 +59,54 @@ PROGRAM acousticwaves
                 
     END INTERFACE
 
+    INTEGER::narg,cptArg
+    LOGICAL::lookForDebug=.FALSE.
+    CHARACTER(LEN = name_len) :: NAME
     
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
     CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
     
-    CHARACTER(LEN = 5) :: Debug = 'True', zper='False'
+    CHARACTER(LEN = name_len) :: zper='False'
 
     INTEGER :: st
 
     INTEGER :: axis, ix, iy, iz, cont
     
     REAL(Double) :: TIME1,TIME2
-    
+       
     ! Initialize MPI; get total number of tasks and ID of this task
     CALL mpi_init(ierr)
     CALL mpi_comm_size(MPI_COMM_WORLD, ntasks, ierr)
     CALL mpi_comm_rank(MPI_COMM_WORLD, me, ierr)
     
+        
     !PROCESS 0 READS THE INPUT PARAMETERS AND BROADCASTS THE INFORMATION
     IF (me==0) THEN
+    !Check if arguments are found
+	narg=command_argument_count()
+    
+    IF(narg>0)THEN
+	    !loop across options
+	    DO cptArg=1,narg
+	        CALL get_command_argument(cptArg,NAME)
+		    SELECT CASE(ADJUSTL(NAME))
+			    !First known args
+			    CASE("--debug")
+	            lookForDebug=.TRUE. !change logical value
+	            CASE DEFAULT
+	            !Treat the second arg of a serie
+	            IF(LookForDebug)THEN
+			        Debug=ADJUSTL(NAME) !assign a value to Debug
+			        LookForDebug=.FALSE. !put the logical variable to its initial value
+			    ELSE
+			        WRITE(*,*)"Option ",ADJUSTL(NAME),"unknown"
+			    ENDIF
+		    ENDSELECT 
+	    ENDDO 
+	    ENDIF
         CALL read_input_param() 
     END IF
+    CALL mpi_bcast(Debug, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(material, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nx, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
