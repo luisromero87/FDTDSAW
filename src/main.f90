@@ -59,8 +59,12 @@ PROGRAM acousticwaves
                 
     END INTERFACE
 
+    !Command line argument variables
     INTEGER::narg,cptArg
-    LOGICAL::lookForDebug=.FALSE.
+    LOGICAL::lookForDebug = .FALSE.
+    LOGICAL::lookForConfigfile = .FALSE.
+    LOGICAL :: fileExist
+    LOGICAL :: error = .FALSE.
     CHARACTER(LEN = name_len) :: NAME
     
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
@@ -68,8 +72,10 @@ PROGRAM acousticwaves
     
     CHARACTER(LEN = name_len) :: zper='False'
 
+    !Error handle
     INTEGER :: st
 
+    !Varibles for idexing
     INTEGER :: axis, ix, iy, iz, cont
     
     REAL(Double) :: TIME1,TIME2
@@ -92,21 +98,41 @@ PROGRAM acousticwaves
 		    SELECT CASE(ADJUSTL(NAME))
 			    !First known args
 			    CASE("--debug")
-	            lookForDebug=.TRUE. !change logical value
+                    Debug = "True"
+                    lookForDebug = .TRUE. !change logical value
+			    CASE("--configfile")
+                    lookForDebug = .FALSE.
+                    lookForConfigfile = .TRUE. !change logical value
+			    CASE("--help")
+                    WRITE(*,*) "\nAvailable options:\n\n&
+                    --debug\t\t Print adicional information about the simulation\n&
+                    --configfile\t input configuration file\n&
+                    --help\t\t print this message\n"
+                    STOP
 	            CASE DEFAULT
 	            !Treat the second arg of a serie
-	            IF(LookForDebug)THEN
-			        Debug=ADJUSTL(NAME) !assign a value to Debug
-			        LookForDebug=.FALSE. !put the logical variable to its initial value
+	            IF (LookForDebug) THEN
+			        Debug = ADJUSTL(NAME) !assign a value to Debug
+			        LookForDebug = .FALSE. !put the logical variable to its initial value
+                ELSEIF (LookForConfigfile) THEN
+                    sim_config =  ADJUSTL(NAME)
+                    INQUIRE (FILE = sim_config, EXIST = fileExist)
+                    IF ( .NOT. fileExist ) THEN
+                        WRITE(*,*)'file ',sim_config,' not found'
+                        STOP
+                    ENDIF
+                    LookForConfigfile = .FALSE.
 			    ELSE
-			        WRITE(*,*)"Option ",ADJUSTL(NAME),"unknown"
+			        WRITE(*,*)"Ignoring unknown option ",ADJUSTL(NAME)
 			    ENDIF
 		    ENDSELECT 
 	    ENDDO 
 	    ENDIF
-        CALL read_input_param() 
-    END IF
+    ENDIF
     CALL mpi_bcast(Debug, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    
+    IF (me .EQ. 0) CALL read_input_param() 
+    
     CALL mpi_bcast(material, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nx, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)

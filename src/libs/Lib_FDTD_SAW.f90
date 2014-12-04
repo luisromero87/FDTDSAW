@@ -82,7 +82,7 @@ ENDFUNCTION UROLLPROC
 SUBROUTINE read_input_param(input_param)
     IMPLICIT NONE
 
-    CHARACTER(LEN=name_len), OPTIONAL :: input_param
+    CHARACTER(LEN = name_len), OPTIONAL :: input_param
     
     INTEGER :: st
     CHARACTER (LEN = name_len) :: param = ''
