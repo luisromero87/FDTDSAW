@@ -204,11 +204,12 @@ PROGRAM acousticwaves
         CALL Get_Total_Strain_Energy()
         CALL Get_Total_Electric_Energy()
         IF (MOD(STEP, 2) .EQ. 0) THEN
-            CALL xzplane()
-            1000 format('free_surface', i3.3, '_'i3.3, '.vtk')
+!            CALL xzplane()
+            1000 format('free_surface', i3.3, '_'i3.3, '.vtr')
             WRITE(outfile, 1000) me, step/2
+            CALL test_vtk(outfile)
             data_name = 'v'
-            CALL write_free_surface(outfile, data_name)
+!            CALL write_free_surface(outfile, data_name)
 !            CALL open_vtk_file(outfile)
 !            CALL write_volume_v(outfile, data_name)
         END IF

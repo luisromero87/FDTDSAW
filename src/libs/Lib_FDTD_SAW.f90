@@ -4,6 +4,8 @@ USE mpi
 USE Type_Kinds
 USE Constants_Module
 USE Global_Vars
+!USE IR_Precision  
+USE LIB_VTK_IO
 
 IMPLICIT NONE
 PRIVATE
@@ -20,6 +22,7 @@ PUBLIC :: share_v
 PUBLIC :: share_T
 PUBLIC :: v_half_step
 PUBLIC :: T_half_step
+PUBLIC :: test_vtk
 !PUBLIC :: open_vtk_file
 !PUBLIC :: write_free_surface
 !PUBLIC :: write_volume_v
@@ -642,5 +645,44 @@ SUBROUTINE Get_Total_Electric_Energy()
     IF (me .EQ. 0) U_e_total = 0.5*U_e_total/beta_s(1,1)*dt**2
     
 ENDSUBROUTINE Get_Total_Electric_Energy
+
+SUBROUTINE test_vtk(vtkfile)
+	IMPLICIT NONE
+    CHARACTER (LEN=*) :: vtkfile
+	INTEGER :: ix, iy, iz
+    INTEGER :: E_IO
+    REAL, DIMENSION(1:Nx-2) :: x_xml_rect 
+    REAL, DIMENSION(1:Ny-2) :: y_xml_rect 
+    REAL, DIMENSION(1:Nz-2) :: z_xml_rect 
+    
+    ! esempio di output in "RectilinearGrid" XML (binario)
+    ! creazione del file
+    E_IO = VTK_INI_XML(output_format = 'BINARY',              &
+                       filename      = vtkfile, &
+                       mesh_topology = 'RectilinearGrid',     &
+                       nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=nz-2)
+    ! salvataggio della geometria del "Piece" corrente
+!    DO ix=1,Nx-1
+    x_xml_rect=((/(ix,ix=1, Nx-2)/)-1)*deltax+offsetx
+    y_xml_rect=((/(iy,iy=1, Ny-2)/)-1)*deltay+offsety
+    z_xml_rect=((/(iz,iz=1, Nz-2)/)-1)*deltaz
+    E_IO = VTK_GEO_XML(nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=nz-2, &
+                         X=x_xml_rect,Y=y_xml_rect,Z=z_xml_rect)
+    ! inizializzazione del salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'OPEN')
+    ! salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2)*(Nz-2), &
+                       varname = 'V',                    &
+                       varX=Vx(1:Nx-2, 1:Ny-2, 1:Nz-2),varY=Vy(1:Nx-2, 1:Ny-2, 1:Nz-2),varZ=Vz(1:Nx-2, 1:Ny-2, 1:Nz-2))
+    ! chiusura del blocco delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'Close')
+    ! chiusura del "Piece" corrente
+    E_IO = VTK_GEO_XML()
+    ! chiusura del file
+    E_IO = VTK_END_XML()
+    
+ENDSUBROUTINE test_vtk
 
 ENDMODULE Lib_FDTD_SAW
