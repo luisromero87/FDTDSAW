@@ -6,7 +6,6 @@ PROGRAM acousticwaves
     USE Global_Vars
     USE Lib_FDTD_SAW
     USE time_step
-    USE write_to_vtk
     IMPLICIT NONE
 
     !Command line argument variables
@@ -137,11 +136,11 @@ PROGRAM acousticwaves
 !    CALL load_D0() !w1, w2 ...ok
     WRITE(outfile, '(A,i3.3,A)') 'IDT/D0',me,'.vtr'
 !    CALL save_D0_to_vtk(outfile, nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
-    CALL write_volume_D0()
-    IF (Debug .EQ. 'True') THEN
-        CALL write_volume_w1() !ok
-        CALL write_volume_D0() !ok
-    ENDIF
+!    CALL write_volume_D0()
+!    IF (Debug .EQ. 'True') THEN
+!        CALL write_volume_w1() !ok
+!        CALL write_volume_D0() !ok
+!    ENDIF
     
 !     CALL CPU_TIME(TIME1) 
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -153,7 +152,7 @@ PROGRAM acousticwaves
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_T()
         CALL v_half_step(zper=zper)
-!        CALL dot_source()
+        CALL dot_source()
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
         CALL T_half_step(zper=zper)
