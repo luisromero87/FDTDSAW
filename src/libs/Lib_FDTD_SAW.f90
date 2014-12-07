@@ -54,17 +54,22 @@ SUBROUTINE read_input_param(input_param_file)
     CHARACTER(LEN = *) :: input_param_file
         
     INTEGER :: st
-    CHARACTER (LEN = name_len) :: param = ''
+    INTEGER :: pos
+    CHARACTER (LEN = name_len) :: buffer = ''
     CHARACTER (LEN = name_len) :: param_name = ''
     CHARACTER (LEN = name_len) :: param_value = ''
  
     OPEN(UNIT = 12, FILE = input_param_file, IOSTAT = st)
     IF (st .EQ. 0) THEN
-    READ(12, *, IOSTAT=st) param_name, param_value
+    READ(12, '(A)', IOSTAT=st) buffer
     DO WHILE(st .EQ. 0)
+    
+        pos = scan(buffer, ' ')
+        param_name = TRIM(ADJUSTL(buffer(1:pos)))
+        param_value= TRIM(ADJUSTL(buffer(pos+1:)))
         
-        SELECT CASE(param_name)
-            CASE("Material:")
+        SELECT CASE(trim(param_name))
+            CASE('Material:')
                 material=param_value
             CASE("dt:")
                 READ(param_value,*) dt
@@ -95,9 +100,9 @@ SUBROUTINE read_input_param(input_param_file)
             CASE("m:")
                 READ(param_value,*) m
             CASE("Output_dir:")
-                output_dir=TRIM(param_value)//'/'
+                output_dir=param_value
         ENDSELECT 
-        READ(12, *, IOSTAT=st) param_name, param_value
+        READ(12, '(A)', IOSTAT=st) buffer
         
     ENDDO
     CLOSE(12)
