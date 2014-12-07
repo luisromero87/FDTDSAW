@@ -1,0 +1,111 @@
+#!/usr/bin/make
+
+#main building variables
+DSRC    = src/
+DOBJ    = build/obj/
+DMOD    = build/mod/
+VPATH   = $(DSRC) $(DOBJ) $(DMOD)
+DEXE    = build/
+MKDIRS  = $(DOBJ) $(DMOD) $(DEXE)
+LIBS    =
+FC      = mpif90
+OPTSC   = -c -c -cpp -O3 -fbackslash -J build/mod/
+OPTSL   =  -J build/mod/
+PREPROC = 
+LCEXES  = $(shell echo $(EXES) | tr '[:upper:]' '[:lower:]')
+EXESPO  = $(addsuffix .o,$(LCEXES))
+EXESOBJ = $(addprefix $(DOBJ),$(EXESPO))
+
+#auxiliary variables
+COTEXT  = "Compiling $(<F)"
+LITEXT  = "Assembling $@"
+
+#building rules 
+$(DEXE)MAIN: $(MKDIRS) $(DOBJ)main.o
+	@rm -f $(filter-out $(DOBJ)main.o,$(EXESOBJ))
+	@echo $(LITEXT)
+	@$(FC) $(OPTSL) $(PREPROC) $(DOBJ)*.o $(LIBS) -o $@
+EXES := $(EXES) MAIN
+
+$(DOBJ)main.o: src/main.f90 \
+	$(DOBJ)type_kinds.o \
+	$(DOBJ)constants_module.o \
+	$(DOBJ)global_vars.o \
+	$(DOBJ)lib_fdtd_saw.o \
+	$(DOBJ)time_step.o \
+	$(DOBJ)write_to_vtk.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)lib_base64.o: src/libs/Lib_Base64.f90 \
+	$(DOBJ)ir_precision.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)global_vars.o: src/libs/global_vars.f90 \
+	$(DOBJ)type_kinds.o \
+	$(DOBJ)constants_module.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)time_step.o: src/libs/time_step.f90 \
+	$(DOBJ)type_kinds.o \
+	$(DOBJ)constants_module.o \
+	$(DOBJ)global_vars.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)ir_precision.o: src/libs/IR_Precision.f90
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)write_to_vtk.o: src/libs/write_to_vtk.f90 \
+	$(DOBJ)type_kinds.o \
+	$(DOBJ)constants_module.o \
+	$(DOBJ)global_vars.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)lib_vtk_io.o: src/libs/Lib_VTK_IO.f90 \
+	$(DOBJ)ir_precision.o \
+	$(DOBJ)lib_base64.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)lib_fdtd_saw.o: src/libs/Lib_FDTD_SAW.f90 \
+	$(DOBJ)type_kinds.o \
+	$(DOBJ)constants_module.o \
+	$(DOBJ)global_vars.o \
+	$(DOBJ)lib_vtk_io.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)type_kinds.o: src/libs/type_kinds.f90
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+$(DOBJ)constants_module.o: src/libs/constants_module.f90 \
+	$(DOBJ)type_kinds.o
+	@echo $(COTEXT)
+	@$(FC) $(OPTSC) $(PREPROC)  $< -o $@
+
+#phony rules 
+.PHONY : $(MKDIRS)
+$(MKDIRS):
+	@mkdir -p $@
+.PHONY : cleanobj
+cleanobj:
+	@echo deleting objects
+	@rm -fr $(DOBJ)
+.PHONY : cleanmod
+cleanmod:
+	@echo deleting mods
+	@rm -fr $(DMOD)
+.PHONY : cleanexe
+cleanexe:
+	@echo deleting exes
+	@rm -f $(addprefix $(DEXE),$(EXES))
+.PHONY : clean
+clean: cleanobj cleanmod
+.PHONY : cleanall
+cleanall: clean cleanexe

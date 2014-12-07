@@ -5,59 +5,9 @@ PROGRAM acousticwaves
     USE Constants_Module
     USE Global_Vars
     USE Lib_FDTD_SAW
+    USE time_step
+    USE write_to_vtk
     IMPLICIT NONE
-
-    INTERFACE
-      
-        SUBROUTINE open_vtk_file(outfile)
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-
-            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
-        END SUBROUTINE open_vtk_file
-
-        SUBROUTINE write_free_surface(outfile, data_name)
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
-            CHARACTER(LEN = name_len), INTENT(IN) :: data_name
-        END SUBROUTINE write_free_surface
-
-        SUBROUTINE write_volume_v(outfile, data_name)
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-            CHARACTER(LEN = name_len), INTENT(IN) :: outfile
-            CHARACTER(LEN = name_len), INTENT(IN) :: data_name
-        END SUBROUTINE write_volume_v
-
-        SUBROUTINE write_volume_w1()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE
-        END SUBROUTINE write_volume_w1
-
-        SUBROUTINE write_volume_D0()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE 
-        END SUBROUTINE write_volume_D0
-
-        SUBROUTINE xzplane()
-            USE Type_Kinds
-            USE Constants_Module
-            USE Global_Vars
-            IMPLICIT NONE 
-        END SUBROUTINE xzplane
-                
-    END INTERFACE
 
     !Command line argument variables
     INTEGER::narg,cptArg
@@ -172,15 +122,22 @@ PROGRAM acousticwaves
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     rho=1.0_dp/rho_inv
 !    beta_s=0.0_dp; e_piezo=0.0_dp
+
+!    CALL read_idt('outputdata/IDT/idt2.txt',420,420,32)
     
     !SIZE OF MPI BUFFERS
     vbuffsizex=(3*Nz*Ny)
     vbuffsizey=(3*Nz*Nx)
     
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    
     CALL SETUP_MPI_VARS(Debug=Debug)
     CALL allocate_memory_pml()
     CALL PML_weights() !w1, w2 ...ok
-    CALL load_D0() !w1, w2 ...ok
+!    CALL load_D0() !w1, w2 ...ok
+    WRITE(outfile, '(A,i3.3,A)') 'IDT/D0',me,'.vtr'
+!    CALL save_D0_to_vtk(outfile, nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
+    CALL write_volume_D0()
     IF (Debug .EQ. 'True') THEN
         CALL write_volume_w1() !ok
         CALL write_volume_D0() !ok
@@ -196,7 +153,7 @@ PROGRAM acousticwaves
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_T()
         CALL v_half_step(zper=zper)
-        CALL dot_source()
+!        CALL dot_source()
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
         CALL T_half_step(zper=zper)
@@ -204,24 +161,11 @@ PROGRAM acousticwaves
         CALL Get_Total_Strain_Energy()
         CALL Get_Total_Electric_Energy()
         IF (MOD(STEP, 2) .EQ. 0) THEN
-!            CALL xzplane()
-            1000 format('free_surface', i3.3, '_'i3.3, '.vtr')
+            1000 format(i3.3, '_'i3.3, '.vtr')
             WRITE(outfile, 1000) me, step/2
-            CALL test_vtk(outfile)
-            data_name = 'v'
-!            CALL write_free_surface(outfile, data_name)
-!            CALL open_vtk_file(outfile)
-!            CALL write_volume_v(outfile, data_name)
+            CALL free_surface_vtk('free_surface'//outfile)
+            CALL EA_to_vtk('xzplane'//outfile, nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
         END IF
-!         cont = 1
-!         DO ix = Nx/2-16, Nx/2+16, 4
-!             DO iy = Ny/2-16, Ny/2+16, 4
-!                 DO iz = 1, 2*8+1, 2
-!                     probe(:, step, cont) = (/ Vx(UROLL3(ix, iy, iz)), Vy(UROLL3(ix, iy, iz)), Vz(UROLL3(ix, iy, iz)) /)
-!                     cont = cont + 1
-!                 END DO
-!             END DO
-!         END DO
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step, "  out of  ",Nstep
             write(31,*) U_k_total, U_s_total, U_e_total

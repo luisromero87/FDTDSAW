@@ -3,3 +3,4 @@ dist/Release/*
 *.o
 *.mod
 *.*~
+*~

@@ -1,0 +1,43 @@
+#!/usr/bin/make
+
+#main building variables
+DSRC    = src/
+DOBJ    = build/obj/
+DMOD    = build/mod/
+VPATH   = $(DSRC) $(DOBJ) $(DMOD)
+DEXE    = build/
+MKDIRS  = $(DOBJ) $(DMOD) $(DEXE)
+LIBS    =
+FC      = gfortran
+OPTSC   = -c -J build/mod/
+OPTSL   =  -J build/mod/
+PREPROC = 
+LCEXES  = $(shell echo $(EXES) | tr '[:upper:]' '[:lower:]')
+EXESPO  = $(addsuffix .o,$(LCEXES))
+EXESOBJ = $(addprefix $(DOBJ),$(EXESPO))
+
+#auxiliary variables
+COTEXT  = "Compiling $(<F)"
+LITEXT  = "Assembling $@"
+
+#building rules 
+#phony rules 
+.PHONY : $(MKDIRS)
+$(MKDIRS):
+	@mkdir -p $@
+.PHONY : cleanobj
+cleanobj:
+	@echo deleting objects
+	@rm -fr $(DOBJ)
+.PHONY : cleanmod
+cleanmod:
+	@echo deleting mods
+	@rm -fr $(DMOD)
+.PHONY : cleanexe
+cleanexe:
+	@echo deleting exes
+	@rm -f $(addprefix $(DEXE),$(EXES))
+.PHONY : clean
+clean: cleanobj cleanmod
+.PHONY : cleanall
+cleanall: clean cleanexe

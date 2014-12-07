@@ -4,7 +4,6 @@ USE mpi
 USE Type_Kinds
 USE Constants_Module
 USE Global_Vars
-!USE IR_Precision  
 USE LIB_VTK_IO
 
 IMPLICIT NONE
@@ -18,11 +17,10 @@ PUBLIC :: load_material
 PUBLIC :: SETUP_MPI_VARS
 PUBLIC :: PML_weights
 PUBLIC :: load_D0
-PUBLIC :: share_v
-PUBLIC :: share_T
-PUBLIC :: v_half_step
-PUBLIC :: T_half_step
-PUBLIC :: test_vtk
+PUBLIC :: free_surface_vtk
+PUBLIC :: EA_to_vtk
+PUBLIC :: read_idt
+PUBLIC :: save_D0_to_vtk
 !PUBLIC :: open_vtk_file
 !PUBLIC :: write_free_surface
 !PUBLIC :: write_volume_v
@@ -32,32 +30,6 @@ PUBLIC :: test_vtk
 PUBLIC :: Get_Total_Kinetic_Energy
 PUBLIC :: Get_Total_Strain_Energy
 PUBLIC :: Get_Total_Electric_Energy
-
-INTERFACE
-        SUBROUTINE share_v()
-            IMPLICIT NONE
-        END SUBROUTINE share_v
-        
-        SUBROUTINE share_T()
-            IMPLICIT NONE
-        END SUBROUTINE share_T
-        
-        SUBROUTINE v_half_step(zper)
-!            USE Type_Kinds
-!            USE Constants_Module
-!            USE Global_Vars
-            IMPLICIT NONE
-            CHARACTER(LEN=*), OPTIONAL :: zper
-        ENDSUBROUTINE v_half_step
-        
-        SUBROUTINE T_half_step(zper)
-!            USE Type_Kinds
-!            USE Constants_Module
-!            USE Global_Vars
-            IMPLICIT NONE
-            CHARACTER(LEN=*), OPTIONAL :: zper
-        ENDSUBROUTINE T_half_step
-ENDINTERFACE
 
 CONTAINS
 
@@ -556,7 +528,7 @@ SUBROUTINE load_D0()
     WRITE(which, '(A,I3.3)') 'outputdata/IDT/D0', me
     OPEN(UNIT = 12, FILE = which, ACTION="read", STATUS="old", FORM = 'unformatted', IOSTAT = st)
     
-    IF (me .EQ. 0 .AND. st .EQ. 0) THEN
+    IF ( st .EQ. 0) THEN
         DO ix = 0, Nx - 1
         READ(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
         READ(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
@@ -646,35 +618,46 @@ SUBROUTINE Get_Total_Electric_Energy()
     
 ENDSUBROUTINE Get_Total_Electric_Energy
 
-SUBROUTINE test_vtk(vtkfile)
+SUBROUTINE free_surface_vtk(vtkfile)
 	IMPLICIT NONE
-    CHARACTER (LEN=*) :: vtkfile
+    CHARACTER (LEN=*),INTENT(IN) :: vtkfile
 	INTEGER :: ix, iy, iz
     INTEGER :: E_IO
     REAL, DIMENSION(1:Nx-2) :: x_xml_rect 
     REAL, DIMENSION(1:Ny-2) :: y_xml_rect 
-    REAL, DIMENSION(1:Nz-2) :: z_xml_rect 
+    REAL, DIMENSION(1:1) :: z_xml_rect 
     
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = vtkfile, &
+                       filename      = 'outputdata/'//vtkfile, &
                        mesh_topology = 'RectilinearGrid',     &
-                       nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=nz-2)
+                       nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=1)
     ! salvataggio della geometria del "Piece" corrente
-!    DO ix=1,Nx-1
     x_xml_rect=((/(ix,ix=1, Nx-2)/)-1)*deltax+offsetx
     y_xml_rect=((/(iy,iy=1, Ny-2)/)-1)*deltay+offsety
-    z_xml_rect=((/(iz,iz=1, Nz-2)/)-1)*deltaz
-    E_IO = VTK_GEO_XML(nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=nz-2, &
+    z_xml_rect=((/(iz,iz=1, 1)/)-1)*deltaz
+    E_IO = VTK_GEO_XML(nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=1, &
                          X=x_xml_rect,Y=y_xml_rect,Z=z_xml_rect)
     ! inizializzazione del salvataggio delle variabili definite ai nodi del "Piece" corrente
     E_IO = VTK_DAT_XML(var_location     = 'node', &
                        var_block_action = 'OPEN')
     ! salvataggio delle variabili definite ai nodi del "Piece" corrente
-    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2)*(Nz-2), &
+    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2), &
                        varname = 'V',                    &
-                       varX=Vx(1:Nx-2, 1:Ny-2, 1:Nz-2),varY=Vy(1:Nx-2, 1:Ny-2, 1:Nz-2),varZ=Vz(1:Nx-2, 1:Ny-2, 1:Nz-2))
+                       varX=Vx(1:Nx-2, 1:Ny-2, 1:1),varY=Vy(1:Nx-2, 1:Ny-2, 1:1),varZ=Vz(1:Nx-2, 1:Ny-2, 1:1))
+    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2), &
+                       varname = 'T_axial',                    &
+                       varX=T1(1:Nx-2, 1:Ny-2, 1:1),varY=T2(1:Nx-2, 1:Ny-2, 1:1),varZ=T3(1:Nx-2, 1:Ny-2, 1:1))
+    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2), &
+                       varname = 'T_cortante',                    &
+                       varX=T4(1:Nx-2, 1:Ny-2, 1:1),varY=T5(1:Nx-2, 1:Ny-2, 1:1),varZ=T6(1:Nx-2, 1:Ny-2, 1:1))
+    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2), &
+                       varname = 'E',                    &
+                       varX=Ex(1:Nx-2, 1:Ny-2, 1:1),varY=Ey(1:Nx-2, 1:Ny-2, 1:1),varZ=Ez(1:Nx-2, 1:Ny-2, 1:1))
+    E_IO = VTK_VAR_XML(NC_NN   = (Nx-2)*(Ny-2), &
+                       varname = 'D',                    &
+                       varX=Disx(1:Nx-2, 1:Ny-2, 1:1),varY=Disy(1:Nx-2, 1:Ny-2, 1:1),varZ=Disz(1:Nx-2, 1:Ny-2, 1:1))
     ! chiusura del blocco delle variabili definite ai nodi del "Piece" corrente
     E_IO = VTK_DAT_XML(var_location     = 'node', &
                        var_block_action = 'Close')
@@ -683,6 +666,159 @@ SUBROUTINE test_vtk(vtkfile)
     ! chiusura del file
     E_IO = VTK_END_XML()
     
-ENDSUBROUTINE test_vtk
+ENDSUBROUTINE free_surface_vtk
+
+SUBROUTINE save_D0_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
+	IMPLICIT NONE
+    CHARACTER (LEN=*), INTENT(IN) :: vtkfile
+	INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
+    
+	INTEGER :: ix, iy, iz
+    INTEGER :: E_IO
+    REAL, DIMENSION(nx1:nx2) :: x_xml_rect 
+    REAL, DIMENSION(ny1:ny2) :: y_xml_rect 
+    REAL, DIMENSION(nz1:nz2) :: z_xml_rect 
+    
+    ! esempio di output in "RectilinearGrid" XML (binario)
+    ! creazione del file
+    E_IO = VTK_INI_XML(output_format = 'BINARY',              &
+                       filename      = 'outputdata/'//vtkfile, &
+                       mesh_topology = 'RectilinearGrid',     &
+                       nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
+    ! salvataggio della geometria del "Piece" corrente
+    x_xml_rect=((/(ix,ix=nx1, nx2)/)-1)*deltax+offsetx
+    y_xml_rect=((/(iy,iy=ny1, ny2)/)-1)*deltay+offsety
+    z_xml_rect=((/(iz,iz=nz1, nz2)/)-1)*deltaz
+    E_IO = VTK_GEO_XML(nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2, &
+                         X=x_xml_rect,Y=y_xml_rect,Z=z_xml_rect)
+    ! inizializzazione del salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'OPEN')
+    ! salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'D0',                    &
+                       varX=Ex(nx1:nx2,ny1:ny2,nz1:nz2),varY=Ey(nx1:nx2, ny1:ny2, nz1:nz2),varZ=Ez(nx1:nx2, ny1:ny2, nz1:nz2))
+    ! chiusura del blocco delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'Close')
+    ! chiusura del "Piece" corrente
+    E_IO = VTK_GEO_XML()
+    ! chiusura del file 
+    E_IO = VTK_END_XML()
+    
+ENDSUBROUTINE save_D0_to_vtk
+
+SUBROUTINE EA_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
+
+	IMPLICIT NONE
+    CHARACTER (LEN=*), INTENT(IN) :: vtkfile
+	INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
+    
+	INTEGER :: ix, iy, iz
+    INTEGER :: E_IO
+    REAL, DIMENSION(nx1:nx2) :: x_xml_rect 
+    REAL, DIMENSION(ny1:ny2) :: y_xml_rect 
+    REAL, DIMENSION(nz1:nz2) :: z_xml_rect 
+    
+    ! esempio di output in "RectilinearGrid" XML (binario)
+    ! creazione del file
+    E_IO = VTK_INI_XML(output_format = 'BINARY',              &
+                       filename      = 'outputdata/'//vtkfile, &
+                       mesh_topology = 'RectilinearGrid',     &
+                       nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
+    ! salvataggio della geometria del "Piece" corrente
+    x_xml_rect=((/(ix,ix=nx1, nx2)/)-1)*deltax+offsetx
+    y_xml_rect=((/(iy,iy=ny1, ny2)/)-1)*deltay+offsety
+    z_xml_rect=((/(iz,iz=nz1, nz2)/)-1)*deltaz
+    E_IO = VTK_GEO_XML(nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2, &
+                         X=x_xml_rect,Y=y_xml_rect,Z=z_xml_rect)
+    ! inizializzazione del salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'OPEN')
+    ! salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'V',                    &
+                       varX=Vx(nx1:nx2,ny1:ny2,nz1:nz2),varY=Vy(nx1:nx2, ny1:ny2, nz1:nz2),varZ=Vz(nx1:nx2, ny1:ny2, nz1:nz2))
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'T_axial',                    &
+                       varX=T1(nx1:nx2,ny1:ny2,nz1:nz2),varY=T2(nx1:nx2, ny1:ny2, nz1:nz2),varZ=T3(nx1:nx2, ny1:ny2, nz1:nz2))
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'T_cortante',                    &
+                       varX=T4(nx1:nx2,ny1:ny2,nz1:nz2),varY=T5(nx1:nx2, ny1:ny2, nz1:nz2),varZ=T6(nx1:nx2, ny1:ny2, nz1:nz2))
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'E',                    &
+                       varX=Ex(nx1:nx2,ny1:ny2,nz1:nz2),varY=Ey(nx1:nx2, ny1:ny2, nz1:nz2),varZ=Ez(nx1:nx2, ny1:ny2, nz1:nz2))
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'D',                    &
+                       varX=Disx(nx1:nx2,ny1:ny2,nz1:nz2),varY=Disy(nx1:nx2, ny1:ny2, nz1:nz2),varZ=Disz(nx1:nx2, ny1:ny2, nz1:nz2))
+    ! chiusura del blocco delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'Close')
+    ! chiusura del "Piece" corrente
+    E_IO = VTK_GEO_XML()
+    ! chiusura del file 
+    E_IO = VTK_END_XML()
+    
+ENDSUBROUTINE EA_to_vtk
+
+SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
+	IMPLICIT NONE
+    CHARACTER (LEN=*), INTENT(IN) :: idt_file
+    INTEGER, INTENT(IN) :: ND0x, ND0y, ND0z
+    
+    INTEGER :: st
+    INTEGER :: ix, iy, iz
+    INTEGER :: procix, prociy
+    REAL(Double), DIMENSION(:,:,:,:), POINTER :: read_D0
+    REAL(Double), DIMENSION(3) :: junk
+    CHARACTER (LEN=name_len) :: outfile
+    
+    IF (me==0) THEN
+        
+    OPEN(UNIT=10,FILE=idt_file,STATUS='old',ACTION='read',IOSTAT=st)
+    ALLOCATE(read_D0(0:2, 0:ND0x-1 , 0:ND0y-1 , 0:ND0z-1))
+    
+    DO iz = 0 , ND0z-1
+    DO iy = 0 , ND0y-1
+    DO ix = 0 , ND0x-1
+        READ(10,*) junk, read_D0(0:2,ix,iy,iz)
+    END Do
+    END DO
+    write (*,*) iz
+    END DO
+    
+    CALL SYSTEM('mkdir -p outputdata/IDT')
+        
+    DO prociy=0, Nprocsy-1
+    DO procix=0, Nprocsx-1
+    
+        DO iz=1, Nz-2
+        DO iy=1, Ny-2
+        DO ix=1, Nx-2
+            D0x(ix, iy, iz)=read_D0(0,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+            D0y(ix, iy, iz)=read_D0(1,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+            D0z(ix, iy, iz)=read_D0(2,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+        END DO
+        END DO
+        END DO
+        
+        WRITE(outfile, '(A,i3.3)') 'D0',procix+Nprocsx*prociy
+        OPEN(UNIT=12, FILE='outputdata/IDT/'//outfile, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
+        DO ix = 0, Nx - 1
+        WRITE(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        WRITE(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        WRITE(12) ((D0z(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        END DO
+        CLOSE(12)
+        
+    END DO
+    END DO
+    
+    DEALLOCATE(read_D0,STAT=st)
+    
+    ENDIF
+    
+ENDSUBROUTINE read_idt
+
 
 ENDMODULE Lib_FDTD_SAW

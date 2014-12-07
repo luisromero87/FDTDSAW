@@ -1,10 +1,22 @@
-!     
-! File:   time_step.f90
-! Author: ludwig
-!
-! Created on April 12, 2014, 9:35 PM
-!
+MODULE time_step
 
+USE mpi
+USE Type_Kinds
+USE Constants_Module
+USE Global_Vars
+
+IMPLICIT NONE
+PRIVATE
+
+PUBLIC :: calc_v
+PUBLIC :: calc_T
+PUBLIC :: v_half_step
+PUBLIC :: T_half_step
+PUBLIC :: dot_source
+PUBLIC :: share_v
+PUBLIC :: share_T
+
+CONTAINS
 
 SUBROUTINE calc_v(xi, xf, yi, yf, zi, zf)
 	USE mpi
@@ -641,7 +653,7 @@ SUBROUTINE share_T()
 END SUBROUTINE share_T
 
 
-
+ENDMODULE time_step
 
 
 

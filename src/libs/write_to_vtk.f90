@@ -1,9 +1,20 @@
-!     
-! File:   write_to_vtk.f90
-! Author: ludwig
-!
-! Created on April 12, 2014, 9:35 PM
-!
+MODULE write_to_vtk
+
+USE mpi
+USE Type_Kinds
+USE Constants_Module
+USE Global_Vars
+
+IMPLICIT NONE
+PRIVATE
+
+PUBLIC :: open_vtk_file
+PUBLIC :: write_volume_v
+PUBLIC :: write_free_surface
+PUBLIC :: write_volume_w1
+PUBLIC :: write_volume_D0
+
+CONTAINS
 
 SUBROUTINE open_vtk_file(outfile)
     USE Type_Kinds
@@ -330,3 +341,5 @@ SUBROUTINE write_volume_D0 ()
     CLOSE(12)
     
 END SUBROUTINE write_volume_D0
+
+ENDMODULE write_to_vtk
