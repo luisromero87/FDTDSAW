@@ -20,3 +20,5 @@ Nprocsy:	2
 PML_width:	20
 smax:			0.0041
 m:			1.55
+
+Output_dir:   output

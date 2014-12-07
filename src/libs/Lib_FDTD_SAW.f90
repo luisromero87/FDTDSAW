@@ -17,7 +17,7 @@ PUBLIC :: load_material
 PUBLIC :: SETUP_MPI_VARS
 PUBLIC :: PML_weights
 PUBLIC :: load_D0
-PUBLIC :: free_surface_vtk
+PUBLIC :: freesurface_to_vtk
 PUBLIC :: EA_to_vtk
 PUBLIC :: read_idt
 PUBLIC :: save_D0_to_vtk
@@ -60,9 +60,9 @@ SUBROUTINE read_input_param(input_param_file)
  
     OPEN(UNIT = 12, FILE = input_param_file, IOSTAT = st)
     IF (st .EQ. 0) THEN
+    READ(12, *, IOSTAT=st) param_name, param_value
     DO WHILE(st .EQ. 0)
-    
-        READ(12, *, IOSTAT=st) param_name, param_value
+        
         SELECT CASE(param_name)
             CASE("Material:")
                 material=param_value
@@ -94,13 +94,15 @@ SUBROUTINE read_input_param(input_param_file)
                 READ(param_value,*) smax
             CASE("m:")
                 READ(param_value,*) m
+            CASE("Output_dir:")
+                output_dir=TRIM(param_value)//'/'
         ENDSELECT 
+        READ(12, *, IOSTAT=st) param_name, param_value
         
     ENDDO
     CLOSE(12)
     
-    
-    WRITE(*,*) "\n\n"
+    WRITE(*,*) "\n"
     WRITE(*,*)  "\n*************** INPUT PARAMETERS **************\n"
     WRITE(*,'(A,A)') "Material:\t\t", material
     
@@ -121,6 +123,8 @@ SUBROUTINE read_input_param(input_param_file)
     WRITE(*,'(A,'//FI4P//')') "\nPML_width:\t", PMLwidth
     WRITE(*,'(A,'//FR4P//')') "smax:\t", smax
     WRITE(*,'(A,'//FR4P//')') "m:\t", m
+    
+    WRITE(*,'(A,A)') "\nOutput_dir:\t", output_dir
     
     Nx=CEILING(1.0_dp*NGx/Nprocsx)+2
     NGx=(Nx-2)*Nprocsx
@@ -143,7 +147,7 @@ SUBROUTINE read_input_param(input_param_file)
     WRITE(*,*) "\n"
     
     ELSE
-        WRITE(*,*) 'File not found'
+        WRITE(*,*) 'File ', input_param_file,' not found'
     ENDIF
     
 ENDSUBROUTINE read_input_param
@@ -482,8 +486,8 @@ SUBROUTINE PML_weights(Debug)
         
     IF (PRESENT(Debug)) THEN
         IF (Debug .EQ. 'True') THEN
-            CALL SYSTEM('mkdir -p outputdata/weights')
-            WRITE(which, '(A,I3.3)') 'outputdata/weights/weights', me
+            CALL SYSTEM('mkdir -p '//trim(output_dir)//'weights')
+            WRITE(which, '(A,I3.3)') trim(output_dir)//'weights/weights', me
             OPEN(UNIT = 11, FILE = which, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
             DO axis = 1, 3
                 !write(*, *) axis
@@ -512,7 +516,7 @@ SUBROUTINE load_D0()
     INTEGER :: st
     INTEGER :: ix, iy, iz, axis
     
-    WRITE(which, '(A,I3.3)') 'outputdata/IDT/D0', me
+    WRITE(which, '(A,I3.3)') trim(output_dir)//'IDT/D0', me
     OPEN(UNIT = 12, FILE = which, ACTION="read", STATUS="old", FORM = 'unformatted', IOSTAT = st)
     
     IF ( st .EQ. 0) THEN
@@ -605,7 +609,7 @@ SUBROUTINE Get_Total_Electric_Energy()
     
 ENDSUBROUTINE Get_Total_Electric_Energy
 
-SUBROUTINE free_surface_vtk(vtkfile)
+SUBROUTINE freesurface_to_vtk(vtkfile)
 	IMPLICIT NONE
     CHARACTER (LEN=*),INTENT(IN) :: vtkfile
 	INTEGER :: ix, iy, iz
@@ -617,7 +621,7 @@ SUBROUTINE free_surface_vtk(vtkfile)
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = 'outputdata/'//vtkfile, &
+                       filename      = trim(output_dir)//'freesurface'//vtkfile, &
                        mesh_topology = 'RectilinearGrid',     &
                        nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=1)
     ! salvataggio della geometria del "Piece" corrente
@@ -653,7 +657,7 @@ SUBROUTINE free_surface_vtk(vtkfile)
     ! chiusura del file
     E_IO = VTK_END_XML()
     
-ENDSUBROUTINE free_surface_vtk
+ENDSUBROUTINE freesurface_to_vtk
 
 SUBROUTINE save_D0_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
 	IMPLICIT NONE
@@ -669,7 +673,7 @@ SUBROUTINE save_D0_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = 'outputdata/'//vtkfile, &
+                       filename      = trim(output_dir)//vtkfile, &
                        mesh_topology = 'RectilinearGrid',     &
                        nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
     ! salvataggio della geometria del "Piece" corrente
@@ -684,7 +688,7 @@ SUBROUTINE save_D0_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
     ! salvataggio delle variabili definite ai nodi del "Piece" corrente
     E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
                        varname = 'D0',                    &
-                       varX=Ex(nx1:nx2,ny1:ny2,nz1:nz2),varY=Ey(nx1:nx2, ny1:ny2, nz1:nz2),varZ=Ez(nx1:nx2, ny1:ny2, nz1:nz2))
+                       varX=D0x(nx1:nx2,ny1:ny2,nz1:nz2),varY=D0y(nx1:nx2, ny1:ny2, nz1:nz2),varZ=D0z(nx1:nx2, ny1:ny2, nz1:nz2))
     ! chiusura del blocco delle variabili definite ai nodi del "Piece" corrente
     E_IO = VTK_DAT_XML(var_location     = 'node', &
                        var_block_action = 'Close')
@@ -710,7 +714,7 @@ SUBROUTINE EA_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = 'outputdata/'//vtkfile, &
+                       filename      = trim(output_dir)//vtkfile, &
                        mesh_topology = 'RectilinearGrid',     &
                        nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
     ! salvataggio della geometria del "Piece" corrente
@@ -774,7 +778,7 @@ SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
     write (*,*) iz
     END DO
     
-    CALL SYSTEM('mkdir -p outputdata/IDT')
+    CALL SYSTEM('mkdir -p '//trim(output_dir)//'IDT')
         
     DO prociy=0, Nprocsy-1
     DO procix=0, Nprocsx-1
@@ -790,7 +794,7 @@ SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
         END DO
         
         WRITE(outfile, '(A,i3.3)') 'D0',procix+Nprocsx*prociy
-        OPEN(UNIT=12, FILE='outputdata/IDT/'//outfile, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
+        OPEN(UNIT=12, FILE=trim(output_dir)//'IDT/'//outfile, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
         DO ix = 0, Nx - 1
         WRITE(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
         WRITE(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)

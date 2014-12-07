@@ -54,6 +54,7 @@ PROGRAM acousticwaves
                     lookForConfigfile = .TRUE. !change logical value
 			    CASE("--help")
                     WRITE(*,*) "\nAvailable options:\n\n&
+                    --help\t\t Print this message\n&
                     --debug\t\t Print adicional information about the simulation\n&
                     --configfile\t input configuration file\n&
                     --help\t\t print this message\n"
@@ -83,7 +84,9 @@ PROGRAM acousticwaves
     IF (me .EQ. 0) CALL read_input_param(input_param_file) 
     
     CALL mpi_bcast(material, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(output_dir, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(data_fstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nx, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Ny, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nz, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
@@ -93,6 +96,7 @@ PROGRAM acousticwaves
     CALL mpi_bcast(deltaz, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nprocsx, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nprocsy, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(Nprocsy, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     IF (Nprocsx*Nprocsy .NE. ntasks) THEN
         IF (me==0) THEN
             WRITE(*,*) "***Error: The requiered processes are ", Nprocsx*Nprocsy
@@ -101,7 +105,7 @@ PROGRAM acousticwaves
         STOP
     END IF
     
-    CALL SYSTEM('mkdir -p outputdata/IDT')
+    CALL SYSTEM('mkdir -p '//trim(output_dir)//'IDT')
     
     !ALLOCATE THE MEMORY FOR ALL VARIABLES
     CALL allocate_memory()
@@ -146,9 +150,9 @@ PROGRAM acousticwaves
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     TIME1=MPI_WTIME()
     
-    OPEN(UNIT=31, FILE='outputdata/U_total.dat', ACTION="write", STATUS="replace")
+    OPEN(UNIT=31, FILE=trim(output_dir)//'U_total.dat', ACTION="write", STATUS="replace")
 
-    DO step = 1, Nstep
+    DO step = 0, Nstep-1
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_T()
         CALL v_half_step(zper=zper)
@@ -159,14 +163,13 @@ PROGRAM acousticwaves
         CALL Get_Total_Kinetic_Energy()
         CALL Get_Total_Strain_Energy()
         CALL Get_Total_Electric_Energy()
-        IF (MOD(STEP, 2) .EQ. 0) THEN
-            1000 format(i3.3, '_'i3.3, '.vtr')
-            WRITE(outfile, 1000) me, step/2
-            CALL free_surface_vtk('free_surface'//outfile)
-            CALL EA_to_vtk('xzplane'//outfile, nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
+        IF (MOD(STEP, data_fstep) .EQ. 0) THEN
+            WRITE(outfile, '(i3.3,A,i5.5,A)') me, '_', step, '.vtr'
+            CALL freesurface_to_vtk(TRIM(outfile))
+            CALL EA_to_vtk('xzplane'//TRIM(outfile), nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
         END IF
         IF (me==0) THEN
-            WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step, "  out of  ",Nstep
+            WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step+1, "  out of  ",Nstep
             write(31,*) U_k_total, U_s_total, U_e_total
         END IF
     END DO

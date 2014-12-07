@@ -49,7 +49,6 @@ OBJECTFILES= \
 FDTDSAW: ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/fdtdsaw
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/fdtdsaw: ${OBJECTFILES} 
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata
 	$(FC) $(FFLAGS) -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/fdtdsaw ${OBJECTFILES} ${LDLIBSOPTIONS} 
 	$(CP) -nr ${SRCMATERIALSDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	$(CP) -ur ${SRCCONFIGFILESDIR} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -133,4 +132,6 @@ ${OBJECTDIR}/libs/IR_Precision.o: ${SRCLIBSDIR}/IR_Precision.f90
 clean:
 	${RM} -rf ${OBJECTDIR}
 	${RM} -f *.mod
-	${RM} -rf ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/outputdata/*
+	find ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ -type d \
+	-not -name ${CND_PLATFORM} \
+	-not -name 'Materials' -not -name 'configfiles' | xargs rm -rf

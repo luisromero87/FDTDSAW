@@ -38,6 +38,7 @@ CHARACTER(LEN=name_len), PUBLIC :: Debug='False'
 
 !INPUT PARAMETERS
 CHARACTER(LEN=name_len), PUBLIC :: input_param_file='configfiles/simconfig'
+CHARACTER(LEN=name_len), PUBLIC :: output_dir='outputdata/'
 CHARACTER(LEN = name_len), PUBLIC :: material = 'bi12geo20' !Default
 
 INTEGER(Long), PUBLIC :: NGx
@@ -56,7 +57,7 @@ REAL(Double), PUBLIC :: deltax
 REAL(Double), PUBLIC :: deltay
 REAL(Double), PUBLIC :: deltaz
 INTEGER(Long), PUBLIC :: Nstep=5000
-INTEGER(Short), PUBLIC :: data_fstep=100
+INTEGER(Long), PUBLIC :: data_fstep=100
 REAL(Double), PUBLIC :: dt = 2.0_dp * 1.0e-12
 
 
