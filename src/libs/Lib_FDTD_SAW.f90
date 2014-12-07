@@ -21,12 +21,6 @@ PUBLIC :: free_surface_vtk
 PUBLIC :: EA_to_vtk
 PUBLIC :: read_idt
 PUBLIC :: save_D0_to_vtk
-!PUBLIC :: open_vtk_file
-!PUBLIC :: write_free_surface
-!PUBLIC :: write_volume_v
-!PUBLIC :: write_volume_w1
-!PUBLIC :: write_volume_D0
-!PUBLIC :: xzplane
 PUBLIC :: Get_Total_Kinetic_Energy
 PUBLIC :: Get_Total_Strain_Energy
 PUBLIC :: Get_Total_Electric_Energy
@@ -54,70 +48,58 @@ INTEGER(Short) FUNCTION UROLLPROC(px, py)
     RETURN
 ENDFUNCTION UROLLPROC
 
-SUBROUTINE read_input_param(input_param)
+SUBROUTINE read_input_param(input_param_file)
     IMPLICIT NONE
 
-    CHARACTER(LEN = name_len), OPTIONAL :: input_param
-    
+    CHARACTER(LEN = *) :: input_param_file
+        
     INTEGER :: st
     CHARACTER (LEN = name_len) :: param = ''
+    CHARACTER (LEN = name_len) :: param_name = ''
+    CHARACTER (LEN = name_len) :: param_value = ''
+ 
+    OPEN(UNIT = 12, FILE = input_param_file, IOSTAT = st)
+    IF (st .EQ. 0) THEN
+    DO WHILE(st .EQ. 0)
     
-    IF (PRESENT(input_param)) THEN
-        sim_config=input_param
-    END IF
-    OPEN(UNIT = 12, FILE = sim_config, IOSTAT = st)
-
-    DO WHILE (param /= 'Material:')
-        READ(12, *) param, material
-    END DO
-    
-    DO WHILE (param /= 'dt:')
-        READ(12, *) param, dt
-    END DO
-    DO WHILE (param /= 'dx:')
-        READ(12, *) param, deltax
-    END DO
-    DO WHILE (param /= 'dy:')
-        READ(12, *) param, deltay
-    END DO
-    DO WHILE (param /= 'dz:')
-        READ(12, *) param, deltaz
-    END DO
-    
-    DO WHILE (param /= 'Nstep:')
-        READ(12, *) param, Nstep
-    END DO
-    DO WHILE (param /= 'Data_fstep:')
-        READ(12, *) param, data_fstep
-    END DO
-    DO WHILE (param /= 'Nx:')
-        READ(12, *) param, NGx
-    END DO
-    DO WHILE (param /= 'Ny:')
-        READ(12, *) param, NGy
-    END DO
-    DO WHILE (param /= 'Nz:')
-        READ(12, *) param, NGz
-    END DO
-    
-    DO WHILE (param /= 'Nprocsx:')
-        READ(12, *) param, Nprocsx
-    END DO
-    DO WHILE (param /= 'Nprocsy:')
-        READ(12, *) param, Nprocsy
-    END DO
-    
-    DO WHILE (param /= 'PML_width:')
-        READ(12, *) param, PMLwidth
-    END DO
-    DO WHILE (param /= 'smax:')
-        READ(12, *) param, smax
-    END DO
-    DO WHILE (param /= 'm:')
-        READ(12, *) param, m
-    END DO
-
+        READ(12, *, IOSTAT=st) param_name, param_value
+        SELECT CASE(param_name)
+            CASE("Material:")
+                material=param_value
+            CASE("dt:")
+                READ(param_value,*) dt
+            CASE("dx:")
+                READ(param_value,*) deltax
+            CASE("dy:")
+                READ(param_value,*) deltay
+            CASE("dz:")
+                READ(param_value,*) deltaz
+            CASE("Nstep:")
+                READ(param_value,*) Nstep
+            CASE("Data_fstep:")
+                READ(param_value,*) data_fstep
+            CASE("Nx:")
+                READ(param_value,*) NGx
+            CASE("Ny:")
+                READ(param_value,*) NGy
+            CASE("Nz:")
+                READ(param_value,*) NGz
+            CASE("Nprocsx:")
+                READ(param_value,*) Nprocsx
+            CASE("Nprocsy:")
+                READ(param_value,*) Nprocsy
+            CASE("PML_width:")
+                READ(param_value,*) PMLwidth
+            CASE("smax:")
+                READ(param_value,*) smax
+            CASE("m:")
+                READ(param_value,*) m
+        ENDSELECT 
+        
+    ENDDO
     CLOSE(12)
+    
+    
     WRITE(*,*) "\n\n"
     WRITE(*,*)  "\n*************** INPUT PARAMETERS **************\n"
     WRITE(*,'(A,A)') "Material:\t\t", material
@@ -159,6 +141,11 @@ SUBROUTINE read_input_param(input_param)
     
     WRITE(*,'(A,I7.0)') "\nTotal procs:\t", Nprocsx*Nprocsy
     WRITE(*,*) "\n"
+    
+    ELSE
+        WRITE(*,*) 'File not found'
+    ENDIF
+    
 ENDSUBROUTINE read_input_param
 
 

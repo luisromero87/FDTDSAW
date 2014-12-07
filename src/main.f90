@@ -64,10 +64,10 @@ PROGRAM acousticwaves
 			        Debug = ADJUSTL(NAME) !assign a value to Debug
 			        LookForDebug = .FALSE. !put the logical variable to its initial value
                 ELSEIF (LookForConfigfile) THEN
-                    sim_config =  ADJUSTL(NAME)
-                    INQUIRE (FILE = sim_config, EXIST = fileExist)
+                    input_param_file =  ADJUSTL(NAME)
+                    INQUIRE (FILE = input_param_file, EXIST = fileExist)
                     IF ( .NOT. fileExist ) THEN
-                        WRITE(*,*)'file ',sim_config,' not found'
+                        WRITE(*,*)'file ',input_param_file,' not found'
                         STOP
                     ENDIF
                     LookForConfigfile = .FALSE.
@@ -80,7 +80,7 @@ PROGRAM acousticwaves
     ENDIF
     CALL mpi_bcast(Debug, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     
-    IF (me .EQ. 0) CALL read_input_param() 
+    IF (me .EQ. 0) CALL read_input_param(input_param_file) 
     
     CALL mpi_bcast(material, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
@@ -189,8 +189,6 @@ PROGRAM acousticwaves
     CALL deallocate_memory()
     ! Close out MPI
     CALL mpi_finalize(ierr)
-
-
 
 
 END PROGRAM
