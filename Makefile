@@ -69,58 +69,57 @@ ${OBJECTDIR}/libs/type_kinds.o: ${SRCLIBSDIR}/type_kinds.f90
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/type_kinds.o ${SRCLIBSDIR}/type_kinds.f90
 
 .PHONY: constants_module
-constants_module: ${OBJECTDIR}/libs/constants_module.o \
-                  type_kinds
+constants_module: type_kinds \
+                  ${OBJECTDIR}/libs/constants_module.o
 ${OBJECTDIR}/libs/constants_module.o: ${SRCLIBSDIR}/constants_module.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/constants_module.o ${SRCLIBSDIR}/constants_module.f90
 
 .PHONY: global_vars
-global_vars: ${OBJECTDIR}/libs/global_vars.o \
-                  type_kinds \
-                  constants_module
+global_vars:      type_kinds \
+                  constants_module \
+                  ${OBJECTDIR}/libs/global_vars.o 
 ${OBJECTDIR}/libs/global_vars.o: ${SRCLIBSDIR}/global_vars.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/global_vars.o ${SRCLIBSDIR}/global_vars.f90
 
 .PHONY: time_step
-
-time_step: ${OBJECTDIR}/libs/time_step.o \
-                  type_kinds \
+time_step:        type_kinds \
                   constants_module \
-                  global_vars
+                  global_vars \
+                  ${OBJECTDIR}/libs/time_step.o
 ${OBJECTDIR}/libs/time_step.o: ${SRCLIBSDIR}/time_step.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/time_step.o ${SRCLIBSDIR}/time_step.f90
 	
 .PHONY: Lib_FDTD_SAW
-time_step: ${OBJECTDIR}/libs/Lib_FDTD_SAW.o \
+Lib_FDTD_SAW:     Lib_VTK_IO \
                   type_kinds \
                   constants_module \
                   global_vars \
-                  Lib_VTK_IO
+                  ${OBJECTDIR}/libs/Lib_FDTD_SAW.o 
 ${OBJECTDIR}/libs/Lib_FDTD_SAW.o: ${SRCLIBSDIR}/Lib_FDTD_SAW.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/Lib_FDTD_SAW.o ${SRCLIBSDIR}/Lib_FDTD_SAW.f90
 
 
 .PHONY: Lib_VTK_IO
-time_step: ${OBJECTDIR}/libs/Lib_VTK_IO.o \
-                  IR_Precision \
-                  Lib_Base64
+Lib_VTK_IO:       IR_Precision \
+                  Lib_Base64 \
+                  ${OBJECTDIR}/libs/Lib_VTK_IO.o
 ${OBJECTDIR}/libs/Lib_VTK_IO.o: ${SRCLIBSDIR}/Lib_VTK_IO.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/Lib_VTK_IO.o ${SRCLIBSDIR}/Lib_VTK_IO.f90
 
 .PHONY: Lib_Base64
-time_step: ${OBJECTDIR}/libs/Lib_Base64.o \
-                  IR_Precision
+Lib_Base64: IR_Precision \
+            ${OBJECTDIR}/libs/Lib_Base64.o
 ${OBJECTDIR}/libs/Lib_Base64.o: ${SRCLIBSDIR}/Lib_Base64.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/Lib_Base64.o ${SRCLIBSDIR}/Lib_Base64.f90
 
 .PHONY: IR_Precision
-time_step: ${OBJECTDIR}/libs/IR_Precision.o 
+IR_Precision: ${OBJECTDIR}/libs/IR_Precision.o 
 ${OBJECTDIR}/libs/IR_Precision.o: ${SRCLIBSDIR}/IR_Precision.f90 
 	${MKDIR} -p ${OBJECTDIR}/libs
 	$(FC) $(FFLAGS) -c -o ${OBJECTDIR}/libs/IR_Precision.o ${SRCLIBSDIR}/IR_Precision.f90

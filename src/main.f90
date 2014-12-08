@@ -13,19 +13,11 @@ PROGRAM acousticwaves
     LOGICAL::lookForDebug = .FALSE.
     LOGICAL::lookForConfigfile = .FALSE.
     LOGICAL :: fileExist
-    LOGICAL :: error = .FALSE.
     CHARACTER(LEN = name_len) :: NAME
     
     CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
-    CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
     
     CHARACTER(LEN = name_len) :: zper='False'
-
-    !Error handle
-    INTEGER :: st
-
-    !Varibles for idexing
-    INTEGER :: axis, ix, iy, iz, cont
     
     REAL(Double) :: TIME1,TIME2
        
@@ -38,32 +30,32 @@ PROGRAM acousticwaves
     !PROCESS 0 READS THE INPUT PARAMETERS AND BROADCASTS THE INFORMATION
     IF (me==0) THEN
     !Check if arguments are found
-	narg=command_argument_count()
+    narg=command_argument_count()
     
     IF(narg>0)THEN
-	    !loop across options
-	    DO cptArg=1,narg
-	        CALL get_command_argument(cptArg,NAME)
-		    SELECT CASE(ADJUSTL(NAME))
-			    !First known args
-			    CASE("--debug")
+        !loop across options
+        DO cptArg=1,narg
+            CALL get_command_argument(cptArg,NAME)
+            SELECT CASE(ADJUSTL(NAME))
+                !First known args
+                CASE("--debug")
                     Debug = "True"
                     lookForDebug = .TRUE. !change logical value
-			    CASE("--configfile")
+                CASE("--configfile")
                     lookForDebug = .FALSE.
                     lookForConfigfile = .TRUE. !change logical value
-			    CASE("--help")
+                CASE("--help")
                     WRITE(*,*) "\nAvailable options:\n\n&
                     --help\t\t Print this message\n&
                     --debug\t\t Print adicional information about the simulation\n&
                     --configfile\t input configuration file\n&
                     --help\t\t print this message\n"
                     STOP
-	            CASE DEFAULT
-	            !Treat the second arg of a serie
-	            IF (LookForDebug) THEN
-			        Debug = ADJUSTL(NAME) !assign a value to Debug
-			        LookForDebug = .FALSE. !put the logical variable to its initial value
+                CASE DEFAULT
+                !Treat the second arg of a serie
+                IF (LookForDebug) THEN
+                    Debug = ADJUSTL(NAME) !assign a value to Debug
+                    LookForDebug = .FALSE. !put the logical variable to its initial value
                 ELSEIF (LookForConfigfile) THEN
                     input_param_file =  ADJUSTL(NAME)
                     INQUIRE (FILE = input_param_file, EXIST = fileExist)
@@ -72,12 +64,12 @@ PROGRAM acousticwaves
                         STOP
                     ENDIF
                     LookForConfigfile = .FALSE.
-			    ELSE
-			        WRITE(*,*)"Ignoring unknown option ",ADJUSTL(NAME)
-			    ENDIF
-		    ENDSELECT 
-	    ENDDO 
-	    ENDIF
+                ELSE
+                    WRITE(*,*)"Ignoring unknown option ",ADJUSTL(NAME)
+                ENDIF
+            ENDSELECT 
+        ENDDO 
+        ENDIF
     ENDIF
     CALL mpi_bcast(Debug, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     
@@ -105,7 +97,7 @@ PROGRAM acousticwaves
         STOP
     END IF
     
-    CALL SYSTEM('mkdir -p '//trim(output_dir)//'IDT')
+    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'IDT')
     
     !ALLOCATE THE MEMORY FOR ALL VARIABLES
     CALL allocate_memory()
@@ -126,7 +118,7 @@ PROGRAM acousticwaves
     rho=1.0_dp/rho_inv
 !    beta_s=0.0_dp; e_piezo=0.0_dp
 
-!    CALL read_idt('outputdata/IDT/idt2.txt',420,420,32)
+!    CALL read_D0_file('outputdata/IDT/idt2.txt',420,420,32)
     
     !SIZE OF MPI BUFFERS
     vbuffsizex=(3*Nz*Ny)
@@ -164,9 +156,8 @@ PROGRAM acousticwaves
         CALL Get_Total_Strain_Energy()
         CALL Get_Total_Electric_Energy()
         IF (MOD(STEP, data_fstep) .EQ. 0) THEN
-            WRITE(outfile, '(i3.3,A,i5.5,A)') me, '_', step, '.vtr'
-            CALL freesurface_to_vtk(TRIM(outfile))
-            CALL EA_to_vtk('xzplane'//TRIM(outfile), nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
+            CALL freesurface_to_vtk()
+            CALL EA_to_vtk('xzplane', nx1=1, nx2=Nx-2 , ny1=Ny/2, ny2=Ny/2, nz1=1, nz2=Nz-2)
         END IF
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step+1, "  out of  ",Nstep

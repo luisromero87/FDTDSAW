@@ -19,11 +19,11 @@ PUBLIC :: share_T
 CONTAINS
 
 SUBROUTINE calc_v(xi, xf, yi, yf, zi, zf)
-	USE mpi
+    USE mpi
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
-	IMPLICIT NONE
+    IMPLICIT NONE
     INTEGER xi, xf, yi, yf, zi, zf
     INTEGER ix, iy, iz
     
@@ -69,15 +69,15 @@ SUBROUTINE calc_v(xi, xf, yi, yf, zi, zf)
     ENDDO
     ENDDO
     ENDDO
-	    
+        
 END SUBROUTINE calc_v
 
 SUBROUTINE calc_T(xi, xf, yi, yf, zi, zf)
-	USE mpi
+    USE mpi
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
-	IMPLICIT NONE
+    IMPLICIT NONE
     INTEGER xi, xf, yi, yf, zi, zf
     INTEGER ix, iy, iz
     
@@ -173,7 +173,7 @@ SUBROUTINE calc_T(xi, xf, yi, yf, zi, zf)
     ENDDO
     ENDDO
     ENDDO
-	    
+        
 END SUBROUTINE calc_T
 
 SUBROUTINE v_half_step(zper)
@@ -308,23 +308,23 @@ SUBROUTINE dot_source()
 
     INTEGER :: ix, iy, iz
 
-	IF (procsx.EQ.(Nprocsx-1)/2 .AND. procsy.EQ.(Nprocsy-1)/2) THEN
-	    ix = (Nx/2-2)*MOD(Nprocsx-1,2)+Nx/2
-	    iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
-	    iz = 1
-!~ 	write(*,*) me, ix, iy, iz
-! 		DO iz=1, Nz-2
-		    Vz(ix, iy, iz) = Vz(ix, iy, iz) + &
-		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-		    Vy(ix, iy, iz) = Vy(ix, iy, iz) + &
-		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-		    Vx(ix, iy, iz) = Vx(ix, iy, iz) + &
-		    (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-! 	    END DO
-	
-	    !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
-	END IF
-	
+    IF (procsx.EQ.(Nprocsx-1)/2 .AND. procsy.EQ.(Nprocsy-1)/2) THEN
+        ix = (Nx/2-2)*MOD(Nprocsx-1,2)+Nx/2
+        iy = (Ny/2-2)*MOD(Nprocsy-1,2)+Ny/2
+        iz = 1
+!~     write(*,*) me, ix, iy, iz
+!         DO iz=1, Nz-2
+            Vz(ix, iy, iz) = Vz(ix, iy, iz) + &
+            (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+            Vy(ix, iy, iz) = Vy(ix, iy, iz) + &
+            (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+            Vx(ix, iy, iz) = Vx(ix, iy, iz) + &
+            (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+!         END DO
+    
+        !WRITE(*, *) (step * dt - 3 * PWIDTH)/(3 * PWIDTH) * exp(-1.0 * ((step * dt - 3.0 * PWIDTH)/(PWIDTH))**2)
+    END IF
+    
 END SUBROUTINE dot_source
 
 SUBROUTINE T_half_step(zper)
@@ -415,11 +415,11 @@ SUBROUTINE T_half_step(zper)
 !                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
 !                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
 !                                            
-!				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+!                dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
 !                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
-!				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+!                dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
 !                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
-!				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+!                dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
 !                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
 !                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)    
 !    ENDDO
@@ -449,11 +449,11 @@ SUBROUTINE T_half_step(zper)
                 dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
                 dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
                                             
-				dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
+                dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
                 -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
-				dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
+                dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
                 -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
-				dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
+                dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
                 -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
                 -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
                 
@@ -471,7 +471,7 @@ SUBROUTINE T_half_step(zper)
                 w2(ix, iy, iz, x) * c_E(3,1)*(dVxdx)+&
                 w2(ix, iy, iz, y) * c_E(3,2)*(dVydy)+&
                 w2(ix, iy, iz, z) * c_E(3,3)*(dVzdz) - e_piezo(3,3)*dEz(ix, iy, iz)*dt
-				
+                
                 T4(ix, iy, iz) = T4(ix, iy, iz) +&
                 w2(ix, iy, iz, y) * c_E(4,4)*dVzdy+&
                 w2(ix, iy, iz, z) * c_E(4,4)*dVydz - &
@@ -533,13 +533,12 @@ END SUBROUTINE free_boundary_T
 
 
 SUBROUTINE share_v()
-	USE mpi
+    USE mpi
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
-	IMPLICIT NONE
-	INTEGER(Short) UROLLPROC
-	INTEGER :: ix, iy, iz, nextprocid
+    IMPLICIT NONE
+    INTEGER :: ix, iy, iz
     
     CALL MPI_IRECV(recvbuff_RIGHT, vbuffsizex, MPI_DOUBLE_PRECISION, &
                            nRIGHT, 1, MPI_COMM_WORLD, reqs(1), ierr)
@@ -587,15 +586,13 @@ END SUBROUTINE share_v
 
 
 SUBROUTINE share_T()
-	USE mpi
+    USE mpi
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
-	IMPLICIT NONE
-	INTEGER(Short) UROLLPROC
-	INTEGER :: ix, iy, iz, nextprocid
-	
-	
+    IMPLICIT NONE
+    INTEGER :: ix, iy, iz
+    
     CALL MPI_IRECV(recvbuff_RIGHT, 2*vbuffsizex, MPI_DOUBLE_PRECISION, &
                            nRIGHT, 1, MPI_COMM_WORLD, reqs(1), ierr)
     CALL MPI_IRECV(recvbuff_LEFT , 2*vbuffsizex, MPI_DOUBLE_PRECISION, &
@@ -649,7 +646,7 @@ SUBROUTINE share_T()
                            nDOWN , 0, MPI_COMM_WORLD, reqs(7), ierr)
     CALL MPI_ISEND(sendbuff_UP   , 2*vbuffsizey, MPI_DOUBLE_PRECISION, &
                            nUP   , 2, MPI_COMM_WORLD, reqs(8), ierr)
-	    
+        
 END SUBROUTINE share_T
 
 

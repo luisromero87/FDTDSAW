@@ -19,7 +19,7 @@ PUBLIC :: PML_weights
 PUBLIC :: load_D0
 PUBLIC :: freesurface_to_vtk
 PUBLIC :: EA_to_vtk
-PUBLIC :: read_idt
+PUBLIC :: read_D0_file
 PUBLIC :: save_D0_to_vtk
 PUBLIC :: Get_Total_Kinetic_Energy
 PUBLIC :: Get_Total_Strain_Energy
@@ -404,7 +404,7 @@ SUBROUTINE SETUP_MPI_VARS(Debug)
     
     !TWO DIMENSIONAL (x,y) PROCESS INDEX AND OFFSET
     procsy = INT(me/Nprocsx,Short)
-    procsx = MOD(me,Nprocsx)
+    procsx = INT(MOD(me,Nprocsx),Short)
     offsetx=procsx*(Nx-3)*deltax
     offsety=procsy*(Ny-3)*deltay
     !TWO DIMENSIONAL FIRST NEIGHBORS
@@ -437,55 +437,53 @@ SUBROUTINE PML_weights(Debug)
     INTEGER(Long) :: axis, ix, iy, iz
     REAL(Double) :: omega
     
-    CHARACTER(LEN = name_len) :: outfile = 'prueba.vtk' !Default
-    CHARACTER(LEN = name_len) :: data_name = 'w1' !Default
     CHARACTER(LEN=name_len) :: which
     
     DO ix=0,PMLwidth-1
-		omega=fomega(ix)
-	    DO iz=0,Nz-1
-	    DO iy=0,Ny-1
-			!<- x
-			IF (procsx==0) THEN
-				w1(PMLwidth-1-ix,iy,iz,1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(PMLwidth-1-ix,iy,iz,1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
-			END IF
-			!   x ->
-			IF (procsx==Nprocsx-1) THEN
-				w1(Nx-PMLwidth+ix,iy,iz,1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(Nx-PMLwidth+ix,iy,iz,1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
-			END IF
-	    END DO
-	    END DO
+        omega=fomega(ix)
+        DO iz=0,Nz-1
+        DO iy=0,Ny-1
+            !<- x
+            IF (procsx==0) THEN
+                w1(PMLwidth-1-ix,iy,iz,1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+                w2(PMLwidth-1-ix,iy,iz,1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+            END IF
+            !   x ->
+            IF (procsx==Nprocsx-1) THEN
+                w1(Nx-PMLwidth+ix,iy,iz,1) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+                w2(Nx-PMLwidth+ix,iy,iz,1) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+            END IF
+        END DO
+        END DO
     END DO
     
     DO iy=0,PMLwidth-1
-		omega=fomega(iy)
-	    DO iz=0,Nz-1
-	    DO ix=0,Nx-1
-			!<- y
-			IF (procsy .EQ. 0) THEN
-				w1(ix,PMLwidth-1-iy,iz,2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(ix,PMLwidth-1-iy,iz,2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
-			END IF
-			!   y ->
-			IF (procsy .EQ. Nprocsy-1) THEN
-				w1(ix,Ny-PMLwidth+iy,iz,2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(ix,Ny-PMLwidth+iy,iz,2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
-			END IF
-	    END DO
-	    END DO
+        omega=fomega(iy)
+        DO iz=0,Nz-1
+        DO ix=0,Nx-1
+            !<- y
+            IF (procsy .EQ. 0) THEN
+                w1(ix,PMLwidth-1-iy,iz,2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+                w2(ix,PMLwidth-1-iy,iz,2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+            END IF
+            !   y ->
+            IF (procsy .EQ. Nprocsy-1) THEN
+                w1(ix,Ny-PMLwidth+iy,iz,2) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+                w2(ix,Ny-PMLwidth+iy,iz,2) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+            END IF
+        END DO
+        END DO
     END DO
     
     DO iz=0,PMLwidth-1
-		omega=fomega(iz)
-	    DO iy=0,Ny-1
-	    DO ix=0,Nx-1
-			!   z ->
-				w1(ix,iy,Nz-PMLwidth+iz,3) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
-				w2(ix,iy,Nz-PMLwidth+iz,3) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
-	    END DO
-	    END DO
+        omega=fomega(iz)
+        DO iy=0,Ny-1
+        DO ix=0,Nx-1
+            !   z ->
+                w1(ix,iy,Nz-PMLwidth+iz,3) = (2.0_dp-dt*omega)/(2.0_dp+dt*omega)
+                w2(ix,iy,Nz-PMLwidth+iz,3) = 2.0_dp*dt /( deltax*(2.0_dp+dt*omega) )
+        END DO
+        END DO
     END DO
     
         
@@ -516,10 +514,8 @@ SUBROUTINE load_D0()
     
     CHARACTER(LEN=name_len) :: which
 
-    INTEGER(Long) UROLL3
-
     INTEGER :: st
-    INTEGER :: ix, iy, iz, axis
+    INTEGER :: ix, iy, iz
     
     WRITE(which, '(A,I3.3)') trim(output_dir)//'IDT/D0', me
     OPEN(UNIT = 12, FILE = which, ACTION="read", STATUS="old", FORM = 'unformatted', IOSTAT = st)
@@ -539,9 +535,9 @@ SUBROUTINE load_D0()
 ENDSUBROUTINE load_D0
 
 SUBROUTINE Get_Total_Kinetic_Energy()
-	IMPLICIT NONE
+    IMPLICIT NONE
     
-	INTEGER :: ix, iy, iz
+    INTEGER :: ix, iy, iz
     INTEGER(Long) :: thiscell
     
     U_k = 0
@@ -560,9 +556,9 @@ SUBROUTINE Get_Total_Kinetic_Energy()
 ENDSUBROUTINE Get_Total_Kinetic_Energy
 
 SUBROUTINE Get_Total_Strain_Energy()
-	IMPLICIT NONE
+    IMPLICIT NONE
     
-	INTEGER :: ix, iy, iz
+    INTEGER :: ix, iy, iz
     INTEGER(Long) :: thiscell
     REAL(Double) :: aux
     
@@ -594,9 +590,9 @@ SUBROUTINE Get_Total_Strain_Energy()
 ENDSUBROUTINE Get_Total_Strain_Energy
 
 SUBROUTINE Get_Total_Electric_Energy()
-	IMPLICIT NONE
+    IMPLICIT NONE
     
-	INTEGER :: ix, iy, iz
+    INTEGER :: ix, iy, iz
     INTEGER(Long) :: thiscell
     
     U_e = 0
@@ -614,19 +610,21 @@ SUBROUTINE Get_Total_Electric_Energy()
     
 ENDSUBROUTINE Get_Total_Electric_Energy
 
-SUBROUTINE freesurface_to_vtk(vtkfile)
-	IMPLICIT NONE
-    CHARACTER (LEN=*),INTENT(IN) :: vtkfile
-	INTEGER :: ix, iy, iz
+SUBROUTINE freesurface_to_vtk()
+    IMPLICIT NONE
+    INTEGER :: ix, iy, iz
     INTEGER :: E_IO
-    REAL, DIMENSION(1:Nx-2) :: x_xml_rect 
-    REAL, DIMENSION(1:Ny-2) :: y_xml_rect 
-    REAL, DIMENSION(1:1) :: z_xml_rect 
+    CHARACTER (LEN=name_len) :: outfile
+    REAL(Double), DIMENSION(1:Nx-2) :: x_xml_rect 
+    REAL(Double), DIMENSION(1:Ny-2) :: y_xml_rect 
+    REAL(Double), DIMENSION(1:1) :: z_xml_rect 
     
+    WRITE(outfile, '(i3.3,A,i5.5,A)') me, '_', step, '.vtr'
+
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = trim(output_dir)//'freesurface'//vtkfile, &
+                       filename      = TRIM(output_dir)//'freesurface_'//TRIM(outfile), &
                        mesh_topology = 'RectilinearGrid',     &
                        nx1=1,nx2=nx-2,ny1=1,ny2=ny-2,nz1=1,nz2=1)
     ! salvataggio della geometria del "Piece" corrente
@@ -664,21 +662,24 @@ SUBROUTINE freesurface_to_vtk(vtkfile)
     
 ENDSUBROUTINE freesurface_to_vtk
 
-SUBROUTINE save_D0_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
-	IMPLICIT NONE
-    CHARACTER (LEN=*), INTENT(IN) :: vtkfile
-	INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
+SUBROUTINE save_D0_to_vtk( nx1, nx2, ny1, ny2, nz1, nz2)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
     
-	INTEGER :: ix, iy, iz
+    CHARACTER (LEN=name_len) :: outfile
+    INTEGER :: ix, iy, iz
     INTEGER :: E_IO
-    REAL, DIMENSION(nx1:nx2) :: x_xml_rect 
-    REAL, DIMENSION(ny1:ny2) :: y_xml_rect 
-    REAL, DIMENSION(nz1:nz2) :: z_xml_rect 
+    REAL(Double), DIMENSION(nx1:nx2) :: x_xml_rect 
+    REAL(Double), DIMENSION(ny1:ny2) :: y_xml_rect 
+    REAL(Double), DIMENSION(nz1:nz2) :: z_xml_rect 
     
+    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'D0/')
+    WRITE(outfile, '(A,i3.3,A)') 'D0/D0_', me, '.vtr'
+
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = trim(output_dir)//vtkfile, &
+                       filename      = TRIM(output_dir)//TRIM(outfile), &
                        mesh_topology = 'RectilinearGrid',     &
                        nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
     ! salvataggio della geometria del "Piece" corrente
@@ -706,20 +707,24 @@ ENDSUBROUTINE save_D0_to_vtk
 
 SUBROUTINE EA_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
 
-	IMPLICIT NONE
+    IMPLICIT NONE
     CHARACTER (LEN=*), INTENT(IN) :: vtkfile
-	INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
+    INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
     
-	INTEGER :: ix, iy, iz
+    CHARACTER (LEN=name_len) :: outfile
+    
+    INTEGER :: ix, iy, iz
     INTEGER :: E_IO
-    REAL, DIMENSION(nx1:nx2) :: x_xml_rect 
-    REAL, DIMENSION(ny1:ny2) :: y_xml_rect 
-    REAL, DIMENSION(nz1:nz2) :: z_xml_rect 
+    REAL(Double), DIMENSION(nx1:nx2) :: x_xml_rect 
+    REAL(Double), DIMENSION(ny1:ny2) :: y_xml_rect 
+    REAL(Double), DIMENSION(nz1:nz2) :: z_xml_rect 
+    
+    WRITE(outfile, '(i3.3,A,i5.5,A)') me, '_', step, '.vtr'
     
     ! esempio di output in "RectilinearGrid" XML (binario)
     ! creazione del file
     E_IO = VTK_INI_XML(output_format = 'BINARY',              &
-                       filename      = trim(output_dir)//vtkfile, &
+                       filename      = TRIM(output_dir)//vtkfile//TRIM(outfile), &
                        mesh_topology = 'RectilinearGrid',     &
                        nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
     ! salvataggio della geometria del "Piece" corrente
@@ -757,8 +762,8 @@ SUBROUTINE EA_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
     
 ENDSUBROUTINE EA_to_vtk
 
-SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
-	IMPLICIT NONE
+SUBROUTINE read_D0_file(idt_file,ND0x,ND0y,ND0z)
+    IMPLICIT NONE
     CHARACTER (LEN=*), INTENT(IN) :: idt_file
     INTEGER, INTENT(IN) :: ND0x, ND0y, ND0z
     
@@ -783,7 +788,7 @@ SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
     write (*,*) iz
     END DO
     
-    CALL SYSTEM('mkdir -p '//trim(output_dir)//'IDT')
+    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'D0')
         
     DO prociy=0, Nprocsy-1
     DO procix=0, Nprocsx-1
@@ -799,7 +804,7 @@ SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
         END DO
         
         WRITE(outfile, '(A,i3.3)') 'D0',procix+Nprocsx*prociy
-        OPEN(UNIT=12, FILE=trim(output_dir)//'IDT/'//outfile, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
+        OPEN(UNIT=12, FILE=TRIM(output_dir)//'D0/'//outfile, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
         DO ix = 0, Nx - 1
         WRITE(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
         WRITE(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
@@ -814,7 +819,7 @@ SUBROUTINE read_idt(idt_file,ND0x,ND0y,ND0z)
     
     ENDIF
     
-ENDSUBROUTINE read_idt
+ENDSUBROUTINE read_D0_file
 
 
 ENDMODULE Lib_FDTD_SAW
