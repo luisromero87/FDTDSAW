@@ -46,10 +46,9 @@ PROGRAM acousticwaves
                     lookForConfigfile = .TRUE. !change logical value
                 CASE("--help")
                     WRITE(*,*) "\nAvailable options:\n\n&
-                    --help\t\t Print this message\n&
                     --debug\t\t Print adicional information about the simulation\n&
-                    --configfile\t input configuration file\n&
-                    --help\t\t print this message\n"
+                    --configfile\t Input configuration file\n&
+                    --help\t\t Display this help message and exit\n"
                     STOP
                 CASE DEFAULT
                 !Treat the second arg of a serie
@@ -77,6 +76,7 @@ PROGRAM acousticwaves
     
     CALL mpi_bcast(material, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(output_dir, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    CALL mpi_bcast(D0_file, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(data_fstep, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(Nx, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
@@ -96,9 +96,12 @@ PROGRAM acousticwaves
         CALL mpi_finalize(ierr)
         STOP
     END IF
+        
+    CALL SETUP_MPI_VARS(Debug=Debug)
     
-    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'IDT')
-    
+    IF (D0_file .NE. 'False') CALL read_D0_file(D0_file,NGx,NGy,NGz) 
+    IF (D0_file .NE. 'False') CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, 1)
+
     !ALLOCATE THE MEMORY FOR ALL VARIABLES
     CALL allocate_memory()
     
@@ -118,7 +121,6 @@ PROGRAM acousticwaves
     rho=1.0_dp/rho_inv
 !    beta_s=0.0_dp; e_piezo=0.0_dp
 
-!    CALL read_D0_file('outputdata/IDT/idt2.txt',420,420,32)
     
     !SIZE OF MPI BUFFERS
     vbuffsizex=(3*Nz*Ny)
@@ -126,7 +128,6 @@ PROGRAM acousticwaves
     
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     
-    CALL SETUP_MPI_VARS(Debug=Debug)
     CALL allocate_memory_pml()
     CALL PML_weights() !w1, w2 ...ok
 !    CALL load_D0() !w1, w2 ...ok
@@ -137,6 +138,8 @@ PROGRAM acousticwaves
 !        CALL write_volume_w1() !ok
 !        CALL write_volume_D0() !ok
 !    ENDIF
+
+    CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, nz-2)
     
 !     CALL CPU_TIME(TIME1) 
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -148,7 +151,7 @@ PROGRAM acousticwaves
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_T()
         CALL v_half_step(zper=zper)
-        CALL dot_source()
+        IF (D0_file .EQ. 'False') CALL dot_source()
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
         CALL T_half_step(zper=zper)

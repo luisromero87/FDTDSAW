@@ -54,6 +54,7 @@ SUBROUTINE read_input_param(input_param_file)
     CHARACTER(LEN = *) :: input_param_file
         
     INTEGER :: st
+    LOGICAL :: fileExist
     INTEGER :: pos
     CHARACTER (LEN = name_len) :: buffer = ''
     CHARACTER (LEN = name_len) :: param_name = ''
@@ -101,6 +102,10 @@ SUBROUTINE read_input_param(input_param_file)
                 READ(param_value,*) m
             CASE("Output_dir:")
                 output_dir=param_value
+            CASE("Input_D0_file:")
+                D0_file=param_value
+                INQUIRE (FILE = D0_file, EXIST = fileExist)
+                IF ( .NOT. fileExist ) THEN; WRITE(*,*)'file ',TRIM(D0_file),' not found'; STOP; ENDIF
         ENDSELECT 
         READ(12, '(A)', IOSTAT=st) buffer
         
@@ -130,6 +135,7 @@ SUBROUTINE read_input_param(input_param_file)
     WRITE(*,'(A,'//FR4P//')') "m:\t", m
     
     WRITE(*,'(A,A)') "\nOutput_dir:\t", output_dir
+    WRITE(*,'(A,A)') "Input_D0_file:\t", D0_file
     
     Nx=CEILING(1.0_dp*NGx/Nprocsx)+2
     NGx=(Nx-2)*Nprocsx
@@ -144,7 +150,7 @@ SUBROUTINE read_input_param(input_param_file)
     WRITE(*,*)   "                       proc               total"
     
     WRITE(*,'(A,2'//FI8P//')') "Nx:\t", Nx, NGx
-    WRITE(*,'(A,2'//FI8P//')') "Ny:\t", Ny, NGx
+    WRITE(*,'(A,2'//FI8P//')') "Ny:\t", Ny, NGy
     WRITE(*,'(A,2'//FI8P//')') "Nz:\t", Nz, NGz
     WRITE(*,'(A,2'//FI8P//')') "Celdas:\t", NCeldas, NGCeldas
     
@@ -161,6 +167,8 @@ ENDSUBROUTINE read_input_param
 SUBROUTINE allocate_memory()
     IMPLICIT NONE
     
+    INTEGER :: st
+    
     ALLOCATE(c_E(6,6), s_E(6,6), beta_s(3,3), e_piezo(3,6))
     
     ALLOCATE(dx(0:Nx - 1), dy(0:Ny - 1), dz(0:Nz - 1))
@@ -173,7 +181,7 @@ SUBROUTINE allocate_memory()
     ALLOCATE(Ex(0:Nx-1,0:Ny-1,0:Nz-1), Ey(0:Nx-1,0:Ny-1,0:Nz-1), Ez(0:Nx-1,0:Ny-1,0:Nz-1))
 
     ALLOCATE(dDx(0:Nx-1,0:Ny-1,0:Nz-1), dDy(0:Nx-1,0:Ny-1,0:Nz-1), dDz(0:Nx-1,0:Ny-1,0:Nz-1))
-    ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1))
+    IF (.NOT. ALLOCATED(D0x)) ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1),STAT=st)
     ALLOCATE(Disx(0:Nx-1,0:Ny-1,0:Nz-1), Disy(0:Nx-1,0:Ny-1,0:Nz-1), Disz(0:Nx-1,0:Ny-1,0:Nz-1))
     
     ALLOCATE(w1(0:Nx-1,0:Ny-1,0:Nz-1, 1:3), w2(0:Nx-1,0:Ny-1,0:Nz-1, 1:3))
@@ -198,7 +206,7 @@ SUBROUTINE allocate_memory()
 
     dEx = 0.0_dp; dEy = 0.0_dp; dEz = 0.0_dp
     dDx = 0.0_dp; dDy = 0.0_dp; dDz = 0.0_dp
-    D0x = 0.0_dp; D0y = 0.0_dp; D0z = 0.0_dp
+!    D0x = 0.0_dp; D0y = 0.0_dp; D0z = 0.0_dp
     
 ENDSUBROUTINE allocate_memory
 
@@ -762,9 +770,9 @@ SUBROUTINE EA_to_vtk(vtkfile, nx1, nx2, ny1, ny2, nz1, nz2)
     
 ENDSUBROUTINE EA_to_vtk
 
-SUBROUTINE read_D0_file(idt_file,ND0x,ND0y,ND0z)
+SUBROUTINE read_D0_file(D0_file,ND0x,ND0y,ND0z)
     IMPLICIT NONE
-    CHARACTER (LEN=*), INTENT(IN) :: idt_file
+    CHARACTER (LEN=*), INTENT(IN) :: D0_file
     INTEGER, INTENT(IN) :: ND0x, ND0y, ND0z
     
     INTEGER :: st
@@ -773,51 +781,74 @@ SUBROUTINE read_D0_file(idt_file,ND0x,ND0y,ND0z)
     REAL(Double), DIMENSION(:,:,:,:), POINTER :: read_D0
     REAL(Double), DIMENSION(3) :: junk
     CHARACTER (LEN=name_len) :: outfile
+    CHARACTER (LEN=name_len) :: which
     
     IF (me==0) THEN
         
-    OPEN(UNIT=10,FILE=idt_file,STATUS='old',ACTION='read',IOSTAT=st)
-    ALLOCATE(read_D0(0:2, 0:ND0x-1 , 0:ND0y-1 , 0:ND0z-1))
-    
-    DO iz = 0 , ND0z-1
-    DO iy = 0 , ND0y-1
-    DO ix = 0 , ND0x-1
-        READ(10,*) junk, read_D0(0:2,ix,iy,iz)
-    END Do
-    END DO
-    write (*,*) iz
-    END DO
-    
-    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'D0')
+        OPEN(UNIT=10,FILE=TRIM(D0_file),STATUS='old',ACTION='read',IOSTAT=st)
+        IF (st .NE. 0) THEN; WRITE(*,*) 'File ',TRIM(D0_file),' for D0 not found'; STOP; ENDIF
+        ALLOCATE(read_D0(0:2, 0:ND0x-1 , 0:ND0y-1 , 0:ND0z-1),STAT=st)
+        ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1),STAT=st)
         
-    DO prociy=0, Nprocsy-1
-    DO procix=0, Nprocsx-1
-    
-        DO iz=1, Nz-2
-        DO iy=1, Ny-2
-        DO ix=1, Nx-2
-            D0x(ix, iy, iz)=read_D0(0,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
-            D0y(ix, iy, iz)=read_D0(1,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
-            D0z(ix, iy, iz)=read_D0(2,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+        DO iz = 0 , ND0z-1
+        DO iy = 0 , ND0y-1
+        DO ix = 0 , ND0x-1
+            READ(10,*) junk, read_D0(0:2,ix,iy,iz)
+        END Do
         END DO
+        WRITE (*,'(A,f5.1,A)',advance="no") "\rReading D0 file  ", 100*(iz+1.0_dp)/ND0z, "%  "
+        END DO
+        WRITE (*,'(A)') "\nFile succesfully read ...\n\n"
+        
+        CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'D0/')
+            
+        DO prociy=0, Nprocsy-1
+        DO procix=0, Nprocsx-1
+        
+            DO iz=1, Nz-2
+            DO iy=1, Ny-2
+            DO ix=1, Nx-2
+                D0x(ix, iy, iz)=read_D0(0,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+                D0y(ix, iy, iz)=read_D0(1,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+                D0z(ix, iy, iz)=read_D0(2,ix-1+procix*(Nx-2),iy-1+prociy*(Ny-2),iz-1)
+            END DO
+            END DO
+            END DO
+            
+            WRITE(outfile, '(A,i3.3)') 'D0',procix+Nprocsx*prociy
+            OPEN(UNIT=12, FILE=TRIM(output_dir)//'D0/'//outfile, ACTION="write", STATUS="replace", FORM='unformatted', IOSTAT=st)
+            DO ix = 0, Nx - 1
+            WRITE(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+            WRITE(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+            WRITE(12) ((D0z(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+            END DO
+            CLOSE(12)
+            
         END DO
         END DO
         
-        WRITE(outfile, '(A,i3.3)') 'D0',procix+Nprocsx*prociy
-        OPEN(UNIT=12, FILE=TRIM(output_dir)//'D0/'//outfile, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
-        DO ix = 0, Nx - 1
-        WRITE(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
-        WRITE(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
-        WRITE(12) ((D0z(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
-        END DO
-        CLOSE(12)
-        
-    END DO
-    END DO
-    
-    DEALLOCATE(read_D0,STAT=st)
+        DEALLOCATE(read_D0,STAT=st)
     
     ENDIF
+    
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    
+    ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1),STAT=st)
+    
+    WRITE(which, '(A,I3.3)') trim(output_dir)//'D0/D0', me
+    OPEN(UNIT = 12, FILE = which, ACTION="read", STATUS="old", FORM = 'unformatted', IOSTAT = st)
+    
+    IF ( st .EQ. 0) THEN
+        DO ix = 0, Nx - 1
+        READ(12) ((D0x(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        READ(12) ((D0y(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        READ(12) ((D0z(ix, iy, iz), iy = 0, Ny - 1), iz = 0, Nz - 1)
+        END DO
+    ELSE IF (me .EQ. 0) THEN
+        WRITE(*,*) "No input data for D0, setting D0 to 0.0\n"
+    END IF
+    
+    CLOSE(12)
     
 ENDSUBROUTINE read_D0_file
 

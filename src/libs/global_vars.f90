@@ -40,6 +40,7 @@ CHARACTER(LEN=name_len), PUBLIC :: Debug='False'
 CHARACTER(LEN=name_len), PUBLIC :: input_param_file='configfiles/simconfig'
 CHARACTER(LEN=name_len), PUBLIC :: output_dir='outputdata/'
 CHARACTER(LEN = name_len), PUBLIC :: material = 'bi12geo20' !Default
+CHARACTER(LEN = name_len) :: D0_file = 'False' 
 
 INTEGER(Long), PUBLIC :: NGx
 INTEGER(Long), PUBLIC :: NGy
@@ -131,9 +132,9 @@ REAL(Double), DIMENSION(:,:,:), POINTER :: dDx
 REAL(Double), DIMENSION(:,:,:), POINTER :: dDy
 REAL(Double), DIMENSION(:,:,:), POINTER :: dDz
 
-REAL(Double), DIMENSION(:,:,:), POINTER :: D0x
-REAL(Double), DIMENSION(:,:,:), POINTER :: D0y
-REAL(Double), DIMENSION(:,:,:), POINTER :: D0z
+REAL(Double), DIMENSION(:,:,:), ALLOCATABLE :: D0x
+REAL(Double), DIMENSION(:,:,:), ALLOCATABLE :: D0y
+REAL(Double), DIMENSION(:,:,:), ALLOCATABLE :: D0z
 
 REAL(Double), DIMENSION(:,:,:), POINTER :: Disx
 REAL(Double), DIMENSION(:,:,:), POINTER :: Disy
