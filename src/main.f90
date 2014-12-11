@@ -103,8 +103,6 @@ PROGRAM acousticwaves
         CALL mpi_finalize(ierr)
         STOP
     END IF
-#else
-    WRITE(*,'(A)') "***Warning: Ignoring input for Nprocsx and Nprocsy and set to 1\n"
 #endif
 
     CALL SETUP_MPI_VARS(Debug=Debug)

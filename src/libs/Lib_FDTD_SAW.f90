@@ -85,10 +85,21 @@ SUBROUTINE read_input_param(input_param_file)
                 READ(param_value,*) NGy
             CASE("Nz:")
                 READ(param_value,*) NGz
-            CASE("Nprocsx:")
+            CASE("Nprocsx:")   
+#ifdef MPI2
                 READ(param_value,*) Nprocsx
+#else
+                Nprocsx=1
+                WRITE(*,'(A)') "***Warning: Ignoring input for Nprocsx and set to 1\n"
+#endif
+                
             CASE("Nprocsy:")
+#ifdef MPI2
                 READ(param_value,*) Nprocsy
+#else
+                Nprocsy=1
+                WRITE(*,'(A)') "***Warning: Ignoring input for Nprocsy and set to 1\n"
+#endif
             CASE("PML_width:")
                 READ(param_value,*) PMLwidth
             CASE("smax:")
