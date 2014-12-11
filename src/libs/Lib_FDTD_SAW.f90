@@ -1,6 +1,8 @@
 MODULE Lib_FDTD_SAW
 
-USE mpi
+#ifdef MPI2
+    USE MPI 
+#endif
 USE Type_Kinds
 USE Constants_Module
 USE Global_Vars
@@ -33,13 +35,6 @@ REAL(Double) FUNCTION fomega(ix)
     fomega = smax*((ix+1.0_dp)/(PMLwidth*1.0_dp))**m
     RETURN
 ENDFUNCTION fomega
-
-INTEGER(Long) FUNCTION UROLL3(ix, iy, iz)
-    IMPLICIT NONE
-    INTEGER(Long), INTENT(IN) :: ix, iy, iz
-    UROLL3 = MOD(iz + Nz, Nz) * Ny * Nx + MOD(iy + Ny, Ny) * Nx + MOD(ix + Nx, Nx)
-    RETURN
-ENDFUNCTION UROLL3
 
 INTEGER(Short) FUNCTION UROLLPROC(px, py)
     IMPLICIT NONE
@@ -411,8 +406,15 @@ SUBROUTINE SETUP_MPI_VARS(Debug)
     INTEGER :: ix
     
     !TWO DIMENSIONAL (x,y) PROCESS INDEX AND OFFSET
+#ifdef MPI2
     procsy = INT(me/Nprocsx,Short)
     procsx = INT(MOD(me,Nprocsx),Short)
+#else
+    Nprocsx=1
+    Nprocsy=1
+    procsx=0
+    procsy=0
+#endif
     offsetx=procsx*(Nx-3)*deltax
     offsety=procsy*(Ny-3)*deltay
     !TWO DIMENSIONAL FIRST NEIGHBORS
@@ -428,7 +430,9 @@ SUBROUTINE SETUP_MPI_VARS(Debug)
                  IF (me==ix) THEN
                      write(*,*) procsx, procsy, UROLLPROC(procsx, procsy), nUP, nDOWN,nRIGHT,nLEFT
                  END IF
+#ifdef MPI2
                  CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+#endif
              END DO
              IF (me .EQ. 0) THEN; WRITE(*,*) '\n'; ENDIF
         ENDIF
@@ -497,8 +501,8 @@ SUBROUTINE PML_weights(Debug)
         
     IF (PRESENT(Debug)) THEN
         IF (Debug .EQ. 'True') THEN
-            CALL SYSTEM('mkdir -p '//trim(output_dir)//'weights')
-            WRITE(which, '(A,I3.3)') trim(output_dir)//'weights/weights', me
+            CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'weights')
+            WRITE(which, '(A,I3.3)') TRIM(output_dir)//'weights/weights', me
             OPEN(UNIT = 11, FILE = which, ACTION="write", STATUS="replace", FORM = 'unformatted', IOSTAT = st)
             DO axis = 1, 3
                 !write(*, *) axis
@@ -525,7 +529,7 @@ SUBROUTINE load_D0()
     INTEGER :: st
     INTEGER :: ix, iy, iz
     
-    WRITE(which, '(A,I3.3)') trim(output_dir)//'IDT/D0', me
+    WRITE(which, '(A,I3.3)') TRIM(output_dir)//'IDT/D0', me
     OPEN(UNIT = 12, FILE = which, ACTION="read", STATUS="old", FORM = 'unformatted', IOSTAT = st)
     
     IF ( st .EQ. 0) THEN
@@ -546,20 +550,22 @@ SUBROUTINE Get_Total_Kinetic_Energy()
     IMPLICIT NONE
     
     INTEGER :: ix, iy, iz
-    INTEGER(Long) :: thiscell
     
     U_k = 0
     DO iz = zstart, zend
         DO iy = ystart, yend
             DO ix = xstart, xend
-                thiscell=UROLL3(ix, iy, iz)
                 U_k=U_k+Vx(ix, iy, iz)**2+Vy(ix, iy, iz)**2+Vz(ix, iy, iz)**2
             END DO
         END DO
     END DO
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(U_k, U_k_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
     IF (me .EQ. 0) U_k_total=0.5*U_k_total*rho
+#else
+     U_k_total=0.5*U_k*rho
+#endif
     
 ENDSUBROUTINE Get_Total_Kinetic_Energy
 
@@ -567,14 +573,12 @@ SUBROUTINE Get_Total_Strain_Energy()
     IMPLICIT NONE
     
     INTEGER :: ix, iy, iz
-    INTEGER(Long) :: thiscell
     REAL(Double) :: aux
     
     U_s = 0
     DO iz = zstart, zend
         DO iy = ystart, yend
             DO ix = xstart, xend
-                thiscell=UROLL3(ix, iy, iz)
                 S1 = s_E(1,1)*T1(ix, iy, iz)+s_E(1,2)*T2(ix, iy, iz)+s_E(1,3)*T3(ix, iy, iz)
                 S2 = s_E(2,1)*T1(ix, iy, iz)+s_E(2,2)*T2(ix, iy, iz)+s_E(2,3)*T3(ix, iy, iz)
                 S3 = s_E(3,1)*T1(ix, iy, iz)+s_E(3,2)*T2(ix, iy, iz)+s_E(3,3)*T3(ix, iy, iz)
@@ -591,9 +595,13 @@ SUBROUTINE Get_Total_Strain_Energy()
             END DO
         END DO
     END DO
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(U_s, U_s_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
     IF (me .EQ. 0) U_s_total=0.5*U_s_total
+#else
+     U_s_total=0.5*U_s
+#endif
     
 ENDSUBROUTINE Get_Total_Strain_Energy
 
@@ -601,20 +609,22 @@ SUBROUTINE Get_Total_Electric_Energy()
     IMPLICIT NONE
     
     INTEGER :: ix, iy, iz
-    INTEGER(Long) :: thiscell
     
     U_e = 0
     DO iz = zstart, zend
         DO iy = ystart, yend
             DO ix = xstart, xend
-                thiscell=UROLL3(ix, iy, iz)
                 U_e = U_e + Ex(ix, iy, iz)**2 + Ey(ix, iy, iz)**2 + Ez(ix, iy, iz)**2
             END DO
         END DO
     END DO
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(U_e, U_e_total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
     IF (me .EQ. 0) U_e_total = 0.5*U_e_total/beta_s(1,1)*dt**2
+#else
+     U_e_total = 0.5*U_e/beta_s(1,1)*dt**2
+#endif
     
 ENDSUBROUTINE Get_Total_Electric_Energy
 
@@ -778,7 +788,7 @@ SUBROUTINE read_D0_file(D0_file,ND0x,ND0y,ND0z)
     INTEGER :: st
     INTEGER :: ix, iy, iz
     INTEGER :: procix, prociy
-    REAL(Double), DIMENSION(:,:,:,:), POINTER :: read_D0
+    REAL(Double), DIMENSION(:,:,:,:), ALLOCATABLE :: read_D0
     REAL(Double), DIMENSION(3) :: junk
     CHARACTER (LEN=name_len) :: outfile
     CHARACTER (LEN=name_len) :: which
@@ -789,6 +799,8 @@ SUBROUTINE read_D0_file(D0_file,ND0x,ND0y,ND0z)
         IF (st .NE. 0) THEN; WRITE(*,*) 'File ',TRIM(D0_file),' for D0 not found'; STOP; ENDIF
         ALLOCATE(read_D0(0:2, 0:ND0x-1 , 0:ND0y-1 , 0:ND0z-1),STAT=st)
         ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1),STAT=st)
+        read_D0 = 0.0_dp
+        D0x = 0.0_dp; D0y = 0.0_dp; D0z = 0.0_dp
         
         DO iz = 0 , ND0z-1
         DO iy = 0 , ND0y-1
@@ -830,12 +842,12 @@ SUBROUTINE read_D0_file(D0_file,ND0x,ND0y,ND0z)
         DEALLOCATE(read_D0,STAT=st)
     
     ENDIF
-    
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    
+#endif
     ALLOCATE(D0x(0:Nx-1,0:Ny-1,0:Nz-1), D0y(0:Nx-1,0:Ny-1,0:Nz-1), D0z(0:Nx-1,0:Ny-1,0:Nz-1),STAT=st)
     
-    WRITE(which, '(A,I3.3)') trim(output_dir)//'D0/D0', me
+    WRITE(which, '(A,I3.3)') TRIM(output_dir)//'D0/D0', me
     OPEN(UNIT = 12, FILE = which, ACTION="read", STATUS="old", FORM = 'unformatted', IOSTAT = st)
     
     IF ( st .EQ. 0) THEN

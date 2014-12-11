@@ -7,16 +7,20 @@
 
 MODULE Global_Vars
 
-USE MPI
+#ifdef MPI2
+    USE MPI
+#endif
 USE Type_Kinds
 USE Constants_Module
 IMPLICIT NONE
 
 
 !MPI VARS
+#ifdef MPI2
 INTEGER, DIMENSION(MPI_STATUS_SIZE), PUBLIC :: mpistatus
-INTEGER, PUBLIC :: ierr, ntasks, me
 INTEGER :: stats(MPI_STATUS_SIZE,8), reqs(8)
+#endif
+INTEGER, PUBLIC :: ierr, ntasks, me
 INTEGER, PUBLIC :: nUP, nDOWN, nLEFT, nRIGHT
 INTEGER(Long), PUBLIC :: vbuffsizex
 INTEGER(Long), PUBLIC :: vbuffsizey

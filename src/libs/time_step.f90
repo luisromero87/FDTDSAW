@@ -1,6 +1,8 @@
 MODULE time_step
 
-USE mpi
+#ifdef MPI2
+    USE MPI 
+#endif
 USE Type_Kinds
 USE Constants_Module
 USE Global_Vars
@@ -13,16 +15,14 @@ PUBLIC :: calc_T
 PUBLIC :: v_half_step
 PUBLIC :: T_half_step
 PUBLIC :: dot_source
+#ifdef MPI2
 PUBLIC :: share_v
 PUBLIC :: share_T
+#endif
 
 CONTAINS
 
 SUBROUTINE calc_v(xi, xf, yi, yf, zi, zf)
-    USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
     INTEGER xi, xf, yi, yf, zi, zf
     INTEGER ix, iy, iz
@@ -73,10 +73,6 @@ SUBROUTINE calc_v(xi, xf, yi, yf, zi, zf)
 END SUBROUTINE calc_v
 
 SUBROUTINE calc_T(xi, xf, yi, yf, zi, zf)
-    USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
     INTEGER xi, xf, yi, yf, zi, zf
     INTEGER ix, iy, iz
@@ -177,9 +173,6 @@ SUBROUTINE calc_T(xi, xf, yi, yf, zi, zf)
 END SUBROUTINE calc_T
 
 SUBROUTINE v_half_step(zper)
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
     
     CHARACTER(LEN=*), OPTIONAL :: zper
@@ -211,7 +204,7 @@ SUBROUTINE v_half_step(zper)
         END DO
     ENDIF
     
-        
+#ifdef MPI2
     CALL MPI_WAITALL(4, reqs, stats, ierr)
     
     DO iz=0, Nz-1
@@ -247,6 +240,7 @@ SUBROUTINE v_half_step(zper)
         T6(ix,0_li,iz)= recvbuff_DOWN(5*Nz*Nx+iz*Nx+ix)
     END DO
     END DO
+#endif
     
     DO iz = zstart, zend
         DO iy = ystart, yend
@@ -281,9 +275,6 @@ END SUBROUTINE v_half_step
 
 
 SUBROUTINE free_boundary_v()
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
 
     INTEGER :: ix, iy, iz
@@ -301,9 +292,6 @@ SUBROUTINE free_boundary_v()
 END SUBROUTINE free_boundary_v
 
 SUBROUTINE dot_source()
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
 
     INTEGER :: ix, iy, iz
@@ -328,9 +316,6 @@ SUBROUTINE dot_source()
 END SUBROUTINE dot_source
 
 SUBROUTINE T_half_step(zper)
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
     CHARACTER(LEN=*), OPTIONAL :: zper
 
@@ -369,6 +354,7 @@ SUBROUTINE T_half_step(zper)
         END DO
     ENDIF
        
+#ifdef MPI2
     CALL MPI_WAITALL(4, reqs, stats, ierr)
     
     DO iz=0, Nz-1
@@ -392,6 +378,7 @@ SUBROUTINE T_half_step(zper)
         Vz(ix,0_li,iz)= recvbuff_DOWN(2*Nz*Nx+iz*Nx+ix)
     END DO
     END DO
+#endif
     
     phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
     
@@ -531,12 +518,8 @@ SUBROUTINE free_boundary_T()
 
 END SUBROUTINE free_boundary_T
 
-
+#ifdef MPI2
 SUBROUTINE share_v()
-    USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
     INTEGER :: ix, iy, iz
     
@@ -586,10 +569,6 @@ END SUBROUTINE share_v
 
 
 SUBROUTINE share_T()
-    USE mpi
-    USE Type_Kinds
-    USE Constants_Module
-    USE Global_Vars
     IMPLICIT NONE
     INTEGER :: ix, iy, iz
     
@@ -648,7 +627,7 @@ SUBROUTINE share_T()
                            nUP   , 2, MPI_COMM_WORLD, reqs(8), ierr)
         
 END SUBROUTINE share_T
-
+#endif
 
 ENDMODULE time_step
 

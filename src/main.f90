@@ -1,6 +1,8 @@
 PROGRAM acousticwaves
 
-    USE mpi
+#ifdef MPI2
+    USE MPI 
+#endif
     USE Type_Kinds
     USE Constants_Module
     USE Global_Vars
@@ -22,10 +24,14 @@ PROGRAM acousticwaves
     REAL(Double) :: TIME1,TIME2
        
     ! Initialize MPI; get total number of tasks and ID of this task
+#ifdef MPI2
     CALL mpi_init(ierr)
     CALL mpi_comm_size(MPI_COMM_WORLD, ntasks, ierr)
     CALL mpi_comm_rank(MPI_COMM_WORLD, me, ierr)
-    
+#else
+    me=0
+    ntasks=1
+#endif
         
     !PROCESS 0 READS THE INPUT PARAMETERS AND BROADCASTS THE INFORMATION
     IF (me==0) THEN
@@ -70,10 +76,11 @@ PROGRAM acousticwaves
         ENDDO 
         ENDIF
     ENDIF
+#ifdef MPI2
     CALL mpi_bcast(Debug, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    
+#endif
     IF (me .EQ. 0) CALL read_input_param(input_param_file) 
-    
+#ifdef MPI2
     CALL mpi_bcast(material, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(output_dir, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(D0_file, name_len, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
@@ -96,7 +103,10 @@ PROGRAM acousticwaves
         CALL mpi_finalize(ierr)
         STOP
     END IF
-        
+#else
+    WRITE(*,'(A)') "***Warning: Ignoring input for Nprocsx and Nprocsy and set to 1\n"
+#endif
+
     CALL SETUP_MPI_VARS(Debug=Debug)
     
     IF (D0_file .NE. 'False') CALL read_D0_file(D0_file,NGx,NGy,NGz) 
@@ -109,6 +119,7 @@ PROGRAM acousticwaves
     IF (me==0) THEN
         CALL load_material(Debug=Debug)    !ok
     END IF
+#ifdef MPI2
     CALL mpi_bcast(rho_inv, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(c_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(s_E, 36, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
@@ -118,6 +129,7 @@ PROGRAM acousticwaves
     CALL mpi_bcast(smax, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL mpi_bcast(M, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+#endif
     rho=1.0_dp/rho_inv
 !    beta_s=0.0_dp; e_piezo=0.0_dp
 
@@ -125,9 +137,9 @@ PROGRAM acousticwaves
     !SIZE OF MPI BUFFERS
     vbuffsizex=(3*Nz*Ny)
     vbuffsizey=(3*Nz*Nx)
-    
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    
+#endif
     CALL allocate_memory_pml()
     CALL PML_weights() !w1, w2 ...ok
 !    CALL load_D0() !w1, w2 ...ok
@@ -142,18 +154,26 @@ PROGRAM acousticwaves
     CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, nz-2)
     
 !     CALL CPU_TIME(TIME1) 
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     TIME1=MPI_WTIME()
+#else
+    CALL CPU_TIME(TIME1) 
+#endif
     
     OPEN(UNIT=31, FILE=trim(output_dir)//'U_total.dat', ACTION="write", STATUS="replace")
 
     DO step = 0, Nstep-1
+#ifdef MPI2
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_T()
+#endif
         CALL v_half_step(zper=zper)
         IF (D0_file .EQ. 'False') CALL dot_source()
+#ifdef MPI2
         CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
         CALL share_v()
+#endif
         CALL T_half_step(zper=zper)
         CALL Get_Total_Kinetic_Energy()
         CALL Get_Total_Strain_Energy()
@@ -171,21 +191,31 @@ PROGRAM acousticwaves
     close(31)
     
 !     CALL CPU_TIME(TIME2) 
+#ifdef MPI2
     TIME2 = MPI_WTIME()
+#else
+    CALL CPU_TIME(TIME2) 
+#endif
+
     TIME1 = TIME2-TIME1
     
+#ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    
     CALL MPI_REDUCE(TIME1,TIME2,1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
+#else
+    TIME2=TIME1
+#endif
     IF (me .EQ. 0) THEN
-        WRITE(*,*) TIME2
+        WRITE(outfile, '(F7.1)') TIME2
+        WRITE(*,'(A)') "\n\nSimulation time: \t"//TRIM(ADJUSTL(outfile))//" seg"
         OPEN(UNIT=12, FILE='time', ACTION="write", position="append")
         WRITE(12,*) TIME2
     END IF
     
     CALL deallocate_memory()
     ! Close out MPI
+#ifdef MPI2
     CALL mpi_finalize(ierr)
-
+#endif
 
 END PROGRAM

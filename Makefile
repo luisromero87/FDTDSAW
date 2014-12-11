@@ -9,9 +9,12 @@ RANLIB=ranlib
 CC=cc
 CCC=CC
 CXX=CC
-FC=mpif90
+FC=gfortran
 FFLAGS= -O3 -fbackslash -cpp
 AS=as
+MPI= no
+PREPROC=
+DEBUG=no
 
 # Macros
 CND_PLATFORM=Linux-x86
@@ -43,6 +46,16 @@ OBJECTFILES= \
 	${OBJECTDIR}/libs/time_step.o \
 	${OBJECTDIR}/libs/Lib_FDTD_SAW.o \
 	${OBJECTDIR}/fdtdsaw.o
+
+ifeq "$(DEBUG)" "yes"
+  FFLAGS := $(FFLAGS) -Wall -fcheck=all -C -g -fbacktrace
+endif
+ifeq "$(MPI)" "yes"
+  PREPROC := $(PREPROC) -DMPI2
+  FC = mpif90
+endif
+
+FFLAGS := $(FFLAGS) $(PREPROC)
 
 #BUILD MAIN
 .PHONY: FDTDSAW
