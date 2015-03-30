@@ -124,6 +124,8 @@ REAL(Double), DIMENSION(:,:,:), POINTER :: T6_x
 REAL(Double), DIMENSION(:,:,:), POINTER :: T6_y
 
 !Electrical variable
+REAL(Double), DIMENSION(:,:,:), ALLOCATABLE :: Phi
+
 REAL(Double), DIMENSION(:,:,:), POINTER :: Ex
 REAL(Double), DIMENSION(:,:,:), POINTER :: Ey
 REAL(Double), DIMENSION(:,:,:), POINTER :: Ez

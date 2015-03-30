@@ -69,6 +69,79 @@ f.close()
 s=zeros((6,6))
 d=zeros((3,6))
 
+#---------------------
+#      Bi12GeO20_0045      |
+#---------------------
+f=open('Materials/bi12geo20_0045','wb') 
+
+# Density
+rho=9200.0
+rho_inv=array(1.0/rho,dtype='float64')
+rlc=8*1
+f.write(struct.pack('i',8))
+rho_inv.tofile(f)
+f.write(struct.pack('i',8))
+
+# Stiffness at constant E
+c_E=zeros((6,6),dtype='float64')
+
+c_E=array([[10.475e+10, 5.375e+10, 3.05e+10, 0, 0, 0],
+           [5.375e+10, 10.475e+10, 3.05e+10, 0, 0, 0],
+           [3.05e+10, 3.05e+10, 1.28e+11, 0, 0, 0],
+           [0, 0, 0, 2.55e+10, 0, 0],
+           [0, 0, 0, 0, 2.55e+10, 0],
+           [0, 0, 0, 0, 0, 4.875e+10]])
+
+rlc=8*6*6
+
+f.write(struct.pack('i',rlc))
+c_E.tofile(f)
+f.write(struct.pack('i',rlc))
+
+# Compliance at constant E
+s_E=linalg.inv(c_E)
+
+rlc=8*6*6
+
+f.write(struct.pack('i',rlc))
+s_E.tofile(f)
+f.write(struct.pack('i',rlc))
+
+#Electric permitivity 
+eps_s=zeros((3,3),dtype='float64')
+beta_s=zeros((3,3),dtype='float64')
+
+eps_s=array([[  3.42000000e-10,   0.00000000e+00,   0.00000000e+00],
+             [  0.00000000e+00,   3.42000000e-10,   0.00000000e+00],
+             [  0.00000000e+00,   0.00000000e+00,   3.42000000e-10]])
+
+beta_s=linalg.inv(eps_s)
+
+rlc=8*3*3
+
+f.write(struct.pack('i',rlc))
+beta_s.tofile(f)
+f.write(struct.pack('i',rlc))
+
+
+#Dielectric constant
+e_piezo=zeros((3,6),dtype='float64')
+
+e_piezo=array([[       0,        0,  0,        0, 9.9e-01, 0],
+               [       0,        0,  0, -9.9e-01,       0, 0],
+               [ 9.9e-01, -9.9e-01,  0,        0,       0, 0]])
+
+rlc=8*3*6
+
+f.write(struct.pack('i',rlc))
+(e_piezo.transpose()).tofile(f)
+f.write(struct.pack('i',rlc))
+
+f.close()
+
+s=zeros((6,6))
+d=zeros((3,6))
+
 
 #---------------------
 #      Bi4Ge3O12      |

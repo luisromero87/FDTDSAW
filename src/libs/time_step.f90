@@ -107,17 +107,9 @@ SUBROUTINE calc_T(xi, xf, yi, yf, zi, zf)
     dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
     dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
     
-    dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
-    dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
-    dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
-                                  
-    dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
-    -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
-    dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
-    -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
-    dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
-    -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
-    -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
+!    dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+!    dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+!    dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
 
     T1_x(ix, iy, iz) = T1_x(ix, iy, iz) * w1(ix, iy, iz, x) +&
     w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)
@@ -382,36 +374,9 @@ SUBROUTINE T_half_step(zper)
     
     phase=(step*dt-3*PWIDTH)/(3*PWIDTH)*exp(-1.0*((step*dt-3.0*PWIDTH)/(PWIDTH))**2)
     
-!    DO iz = 1, Nz-2
-!    DO iy = 1, Ny-2
-!    DO ix = 1, Nx-2
-!                dVxdx = Vx(ix, iy, iz) - Vx(ix - 1, iy, iz)
-!                dVydy = Vy(ix, iy, iz) - Vy(ix, iy - 1, iz)
-!                dVzdz = Vz(ix, iy, iz) - Vz(ix, iy, iz - 1)
-!                
-!                dVzdy = (Vz(ix, iy + 1, iz) - Vz(ix, iy, iz))
-!                dVydz = (Vy(ix, iy, iz + 1) - Vy(ix, iy, iz))
-!                
-!                dVzdx = (Vz(ix + 1, iy, iz) - Vz(ix, iy, iz))
-!                dVxdz = (Vx(ix, iy, iz + 1) - Vx(ix, iy, iz))
-!                
-!                dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
-!                dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
-!                
-!                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
-!                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
-!                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
-!                                            
-!                dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
-!                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
-!                dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
-!                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
-!                dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
-!                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
-!                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)    
-!    ENDDO
-!    ENDDO
-!    ENDDO
+    dEx=Ex*phase
+    dEy=Ey*phase
+    dEz=Ez*phase
     
     IF (flag .EQV. .False.) CALL free_boundary_v()
     
@@ -431,19 +396,12 @@ SUBROUTINE T_half_step(zper)
                 
                 dVydx = (Vy(ix + 1, iy, iz) - Vy(ix, iy, iz))
                 dVxdy = (Vx(ix, iy + 1, iz) - Vx(ix, iy, iz))
+
                 
-                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
-                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
-                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
+!                dDx(ix, iy, iz)=D0x(ix, iy, iz)*phase
+!                dDy(ix, iy, iz)=D0y(ix, iy, iz)*phase
+!                dDz(ix, iy, iz)=D0z(ix, iy, iz)*phase
                                             
-                dEx(ix, iy, iz)=(dDx(ix, iy, iz)&
-                -(dVzdy/deltay + dVydz/deltaz)*e_piezo(1,3)-(dVxdz/deltaz + dVzdx/deltax)*e_piezo(1,5))*beta_s(1,1)
-                dEy(ix, iy, iz)=(dDy(ix, iy, iz)&
-                -(dVzdx/deltax + dVxdz/deltaz)*e_piezo(2,5)-(dVydz/deltaz + dVzdy/deltay)*e_piezo(2,4))*beta_s(2,2)
-                dEz(ix, iy, iz)=(dDz(ix, iy, iz)&
-                -(dVydx/deltax + dVxdy/deltay)*e_piezo(3,6)&
-                -(e_piezo(3,1)*dVxdx/deltax + e_piezo(3,2)*dVydy/deltay + e_piezo(3,3)*dVzdz/deltaz))*beta_s(3,3)
-                
                 T1(ix, iy, iz) = T1(ix, iy, iz) +&
                 w2(ix, iy, iz, x) * c_E(1,1)*(dVxdx)+&
                 w2(ix, iy, iz, y) * c_E(1,2)*(dVydy)+&
@@ -476,13 +434,9 @@ SUBROUTINE T_half_step(zper)
                 w2(ix, iy, iz, y) * c_E(6,6)*dVxdy - &
                 dEz(ix, iy, iz)*e_piezo(3,6)*dt
                 
-                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
-                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
-                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
-                
-                Ex(ix, iy, iz)=Ex(ix, iy, iz)+ dEx(ix, iy, iz)
-                Ey(ix, iy, iz)=Ey(ix, iy, iz)+ dEy(ix, iy, iz)
-                Ez(ix, iy, iz)=Ez(ix, iy, iz)+ dEz(ix, iy, iz)
+!                Disx(ix, iy, iz)=Disx(ix, iy, iz)+ dDx(ix, iy, iz)
+!                Disy(ix, iy, iz)=Disy(ix, iy, iz)+ dDy(ix, iy, iz)
+!                Disz(ix, iy, iz)=Disz(ix, iy, iz)+ dDz(ix, iy, iz)
 
             ENDDO
         ENDDO

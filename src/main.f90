@@ -10,6 +10,8 @@ PROGRAM acousticwaves
     USE time_step
     IMPLICIT NONE
 
+    INTEGER :: ix, iy, iz, st
+
     !Command line argument variables
     INTEGER::narg,cptArg
     LOGICAL::lookForDebug = .FALSE.
@@ -106,11 +108,17 @@ PROGRAM acousticwaves
 #endif
 
     CALL SETUP_MPI_VARS(Debug=Debug)
+    !SIZE OF MPI BUFFERS
+    vbuffsizex=(3*Nz*Ny)
+    vbuffsizey=(3*Nz*Nx)
     
-    IF (D0_file .NE. 'False') CALL read_D0_file(D0_file,NGx,NGy,NGz) 
-    IF (D0_file .NE. 'False') CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, 1)
+    IF (D0_file .NE. 'False') CALL read_Phi_file(D0_file,NGx,NGy,NGz) 
+!    IF (D0_file .NE. 'False') CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, 1)
 
     !ALLOCATE THE MEMORY FOR ALL VARIABLES
+#ifdef MPI2
+    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
+#endif
     CALL allocate_memory()
     
     !PROCESS 0 READS MATERIAL CONSTANTS AND BROADCASTS THE INFORMATION
@@ -132,33 +140,47 @@ PROGRAM acousticwaves
 !    beta_s=0.0_dp; e_piezo=0.0_dp
 
     
-    !SIZE OF MPI BUFFERS
-    vbuffsizex=(3*Nz*Ny)
-    vbuffsizey=(3*Nz*Nx)
+
 #ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
 #endif
     CALL allocate_memory_pml()
     CALL PML_weights() !w1, w2 ...ok
 !    CALL load_D0() !w1, w2 ...ok
-    WRITE(outfile, '(A,i3.3,A)') 'IDT/D0',me,'.vtr'
 !    CALL save_D0_to_vtk(outfile, nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
-!    CALL write_volume_D0()
+    CALL save_E_to_vtk(nx1=130, nx2=130 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
 !    IF (Debug .EQ. 'True') THEN
 !        CALL write_volume_w1() !ok
 !        CALL write_volume_D0() !ok
 !    ENDIF
 
-    CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, nz-2)
+!    CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, nz-2)
     
 !     CALL CPU_TIME(TIME1) 
+
+WRITE(outfile, '(A,i3.3)') 'E/E',me
+OPEN(UNIT=456, FILE=TRIM(output_dir)//TRIM(outfile)//'.bin', ACTION="write",STATUS="replace",FORM='unformatted',IOSTAT=st)
+WRITE(456) ((Ex(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+WRITE(456) ((Ey(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+WRITE(456) ((Ez(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+CLOSE(456)
+WRITE(outfile, '(A,i3.3)') 'E/Phi_fs',me
+OPEN(UNIT=456, FILE=TRIM(output_dir)//TRIM(outfile)//'.bin', ACTION="write",STATUS="replace",FORM='unformatted',IOSTAT=st)
+WRITE(456) ((Phi(ix, iy, 0_li), ix = 1, Nx - 2), iy = 1, Ny - 2)
+CLOSE(456)
+WRITE(outfile, '(A,i3.3)') 'E/Phi',me
+OPEN(UNIT=456, FILE=TRIM(output_dir)//TRIM(outfile)//'.bin', ACTION="write",STATUS="replace",FORM='unformatted',IOSTAT=st)
+WRITE(456) ((Phi(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+CLOSE(456)
+
 #ifdef MPI2
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
     TIME1=MPI_WTIME()
 #else
     CALL CPU_TIME(TIME1) 
 #endif
-    
+
+    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'D0/')
     OPEN(UNIT=31, FILE=trim(output_dir)//'U_total.dat', ACTION="write", STATUS="replace")
 
     DO step = 0, Nstep-1
@@ -179,7 +201,21 @@ PROGRAM acousticwaves
         IF (MOD(STEP, data_fstep) .EQ. 0) THEN
             CALL freesurface_to_vtk()
             CALL EA_to_vtk('xzplane', nx1=1, nx2=Nx-2 , ny1=Ny/2, ny2=Ny/2, nz1=1, nz2=Nz-2)
+            CALL EA_to_vtk('idtref', nx1=130, nx2=130 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
         END IF
+        WRITE(outfile, '(A,i3.3,A,i4.4)') 'idtref',me,'_',step
+        OPEN(UNIT=456, FILE=TRIM(output_dir)//TRIM(outfile)//'.bin', ACTION="write",STATUS="replace",FORM='unformatted',IOSTAT=st)
+        WRITE(456) ((Vx(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((Vy(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((Vz(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        
+        WRITE(456) ((T1(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((T2(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((T3(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((T4(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((T5(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        WRITE(456) ((T6(130, iy, iz), iy = 1, Ny - 2), iz = 1, Nz - 2)
+        CLOSE(456)
         IF (me==0) THEN
             WRITE (*,'(A,I5.5,A,I5.5)',advance="no") "\r ", step+1, "  out of  ",Nstep
             write(31,*) U_k_total, U_s_total, U_e_total
