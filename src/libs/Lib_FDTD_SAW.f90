@@ -24,6 +24,7 @@ PUBLIC :: EA_to_vtk
 PUBLIC :: read_D0_file
 PUBLIC :: read_Phi_file
 PUBLIC :: save_D0_to_vtk
+PUBLIC :: write_volume_w
 PUBLIC :: save_E_to_vtk
 PUBLIC :: Get_Total_Kinetic_Energy
 PUBLIC :: Get_Total_Strain_Energy
@@ -825,6 +826,49 @@ SUBROUTINE save_D0_to_vtk( nx1, nx2, ny1, ny2, nz1, nz2)
     E_IO = VTK_END_XML()
     
 ENDSUBROUTINE save_D0_to_vtk
+
+SUBROUTINE write_volume_w( nx1, nx2, ny1, ny2, nz1, nz2)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: nx1, nx2, ny1, ny2, nz1, nz2
+    
+    CHARACTER (LEN=name_len) :: outfile
+    INTEGER :: ix, iy, iz
+    INTEGER :: E_IO
+    REAL(Double), DIMENSION(nx1:nx2) :: x_xml_rect 
+    REAL(Double), DIMENSION(ny1:ny2) :: y_xml_rect 
+    REAL(Double), DIMENSION(nz1:nz2) :: z_xml_rect 
+    
+    CALL SYSTEM('mkdir -p '//TRIM(output_dir)//'w/')
+    WRITE(outfile, '(A,i3.3,A)') 'w/w_', me, '.vtr'
+
+    ! esempio di output in "RectilinearGrid" XML (binario)
+    ! creazione del file
+    E_IO = VTK_INI_XML(output_format = 'BINARY',              &
+                       filename      = TRIM(output_dir)//TRIM(outfile), &
+                       mesh_topology = 'RectilinearGrid',     &
+                       nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2)
+    ! salvataggio della geometria del "Piece" corrente
+    x_xml_rect=((/(ix,ix=nx1, nx2)/)-1)*deltax+offsetx
+    y_xml_rect=((/(iy,iy=ny1, ny2)/)-1)*deltay+offsety
+    z_xml_rect=((/(iz,iz=nz1, nz2)/)-1)*deltaz
+    E_IO = VTK_GEO_XML(nx1=nx1,nx2=nx2,ny1=ny1,ny2=ny2,nz1=nz1,nz2=nz2, &
+                         X=x_xml_rect,Y=y_xml_rect,Z=z_xml_rect)
+    ! inizializzazione del salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'OPEN')
+    ! salvataggio delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_VAR_XML(NC_NN   = (nx2-nx1+1)*(ny2-ny1+1)*(nz2-nz1+1), &
+                       varname = 'w',                    &
+                       varX=w1(nx1:nx2,ny1:ny2,nz1:nz2,1),varY=w1(nx1:nx2, ny1:ny2, nz1:nz2,2),varZ=w1(nx1:nx2, ny1:ny2, nz1:nz2,3))
+    ! chiusura del blocco delle variabili definite ai nodi del "Piece" corrente
+    E_IO = VTK_DAT_XML(var_location     = 'node', &
+                       var_block_action = 'Close')
+    ! chiusura del "Piece" corrente
+    E_IO = VTK_GEO_XML()
+    ! chiusura del file 
+    E_IO = VTK_END_XML()
+    
+ENDSUBROUTINE write_volume_w
 
 SUBROUTINE save_E_to_vtk( nx1, nx2, ny1, ny2, nz1, nz2)
     IMPLICIT NONE

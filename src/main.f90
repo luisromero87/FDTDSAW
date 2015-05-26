@@ -149,10 +149,10 @@ PROGRAM acousticwaves
 !    CALL load_D0() !w1, w2 ...ok
 !    CALL save_D0_to_vtk(outfile, nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
     CALL save_E_to_vtk(nx1=130, nx2=130 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2)
-!    IF (Debug .EQ. 'True') THEN
-!        CALL write_volume_w1() !ok
+    IF (Debug .EQ. 'True') THEN
+        CALL write_volume_w(nx1=1, nx2=Nx-2 , ny1=1, ny2=Ny-2, nz1=1, nz2=Nz-2) !ok
 !        CALL write_volume_D0() !ok
-!    ENDIF
+    ENDIF
 
 !    CALL save_D0_to_vtk( 1, nx-2, 1, ny-2, 1, nz-2)
     
